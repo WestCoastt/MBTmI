@@ -131,28 +131,24 @@ export default function UserInfo() {
                 onChange={(e) => setNickname(e.target.value)}
               />
             </Col>
-            {nickError == "이미 사용중 입니다" ? (
-              <span
-                style={{
-                  fontSize: "15px",
-                  textAlign: "center",
-                  margin: "10px 20px",
-                  color: "red",
-                }}
-              >
-                {nickError}
-              </span>
-            ) : (
-              <span
-                style={{
-                  fontSize: "15px",
-                  textAlign: "center",
-                  margin: "10px 20px",
-                }}
-              >
-                {nickError}
-              </span>
-            )}
+            <span
+              style={
+                nickError == "이미 사용중 입니다"
+                  ? {
+                      color: "red",
+                      fontSize: "15px",
+                      textAlign: "center",
+                      margin: "10px 20px",
+                    }
+                  : {
+                      fontSize: "15px",
+                      textAlign: "center",
+                      margin: "10px 20px",
+                    }
+              }
+            >
+              {nickError}
+            </span>
           </Form.Group>
 
           <Form.Group as={Row} className="mt-3" controlId="formPlaintextEmail">

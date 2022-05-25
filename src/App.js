@@ -218,48 +218,33 @@ function App() {
                 </Dropdown.Toggle>
 
                 <Dropdown.Menu align="end" variant="light">
-                  {nickname != null ? (
-                    <Dropdown.Item
-                      onClick={() => {
-                        history.push("/profile/" + nickname);
+                  <Dropdown.Item
+                    onClick={() => {
+                      nickname != null
+                        ? history.push("/profile/" + nickname)
+                        : history.push("/user?uid=" + user.uid);
+                    }}
+                    style={{ display: "flex" }}
+                  >
+                    <FaUserCircle size="44" color="#a0aec0"></FaUserCircle>
+                    <div
+                      style={{
+                        fontSize: "16px",
+                        display: "flex",
+                        margin: "0 15px",
+                        flexDirection: "column",
                       }}
-                      style={{ display: "flex" }}
                     >
-                      <FaUserCircle size="44" color="#a0aec0"></FaUserCircle>
-                      <div
-                        style={{
-                          fontSize: "16px",
-                          display: "flex",
-                          margin: "0 15px",
-                          flexDirection: "column",
-                        }}
-                      >
-                        <span>{nickname}</span>
+                      <span>{nickname}</span>
+                      {nickname != null ? (
                         <span style={{ color: "#777777" }}>프로필 보기</span>
-                      </div>
-                    </Dropdown.Item>
-                  ) : (
-                    <Dropdown.Item
-                      onClick={() => {
-                        history.push("/user?uid=" + user.uid);
-                      }}
-                      style={{ display: "flex" }}
-                    >
-                      <FaUserCircle size="44" color="#a0aec0"></FaUserCircle>
-                      <div
-                        style={{
-                          fontSize: "16px",
-                          display: "flex",
-                          margin: "0 15px",
-                          flexDirection: "column",
-                        }}
-                      >
+                      ) : (
                         <span style={{ color: "#777777" }}>
                           프로필 설정하기
                         </span>
-                      </div>
-                    </Dropdown.Item>
-                  )}
+                      )}
+                    </div>
+                  </Dropdown.Item>
 
                   <Dropdown.Item
                     onClick={() => {
@@ -495,3 +480,46 @@ export default App;
         <BsPencilSquare size="20"></BsPencilSquare>
       </Button> */
 }
+
+// {nickname != null ? (
+//   <Dropdown.Item
+//     onClick={() => {
+//       history.push("/profile/" + nickname);
+//     }}
+//     style={{ display: "flex" }}
+//   >
+//     <FaUserCircle size="44" color="#a0aec0"></FaUserCircle>
+//     <div
+//       style={{
+//         fontSize: "16px",
+//         display: "flex",
+//         margin: "0 15px",
+//         flexDirection: "column",
+//       }}
+//     >
+//       <span>{nickname}</span>
+//       <span style={{ color: "#777777" }}>프로필 보기</span>
+//     </div>
+//   </Dropdown.Item>
+// ) : (
+//   <Dropdown.Item
+//     onClick={() => {
+//       history.push("/user?uid=" + user.uid);
+//     }}
+//     style={{ display: "flex" }}
+//   >
+//     <FaUserCircle size="44" color="#a0aec0"></FaUserCircle>
+//     <div
+//       style={{
+//         fontSize: "16px",
+//         display: "flex",
+//         margin: "0 15px",
+//         flexDirection: "column",
+//       }}
+//     >
+//       <span style={{ color: "#777777" }}>
+//         프로필 설정하기
+//       </span>
+//     </div>
+//   </Dropdown.Item>
+// )}

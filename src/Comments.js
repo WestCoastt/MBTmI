@@ -96,53 +96,51 @@ export default function Comments(props) {
         <Card.Header className="d-flex justify-content-between" as="h5">
           {title}
 
-          {user != null ? (
-            uid == userId ? (
-              <Dropdown>
-                <Dropdown.Toggle
-                  size="sm"
-                  variant="light"
-                  style={{ lineHeight: "20px" }}
-                  className="more shadow-none rounded-pill px-1 py-1"
-                >
-                  <FiMoreHorizontal size="23"></FiMoreHorizontal>
-                </Dropdown.Toggle>
+          {user != null && uid == userId && (
+            <Dropdown>
+              <Dropdown.Toggle
+                size="sm"
+                variant="light"
+                style={{ lineHeight: "20px" }}
+                className="more shadow-none rounded-pill px-1 py-1"
+              >
+                <FiMoreHorizontal size="23"></FiMoreHorizontal>
+              </Dropdown.Toggle>
 
-                <Dropdown.Menu
-                  align="end"
-                  variant="dark"
-                  style={{ minWidth: "160px" }}
+              <Dropdown.Menu
+                align="end"
+                variant="dark"
+                style={{ minWidth: "160px" }}
+              >
+                <Dropdown.Item
+                  onClick={() => {
+                    history.push(`/edit?docId=${urlSearch.get("docId")}`);
+                  }}
                 >
-                  <Dropdown.Item
-                    onClick={() => {
-                      history.push(`/edit?docId=${urlSearch.get("docId")}`);
-                    }}
-                  >
-                    Edit
-                  </Dropdown.Item>
-                  <Dropdown.Item
-                    onClick={() => {
-                      if (window.confirm("삭제하시겠습니까?")) {
-                        db.collection("post")
-                          .doc(urlSearch.get("docId"))
-                          .delete();
-                        db.collection("user-info")
-                          .doc(uid)
-                          .collection("posts")
-                          .doc(urlSearch.get("docId"))
-                          .delete()
-                          .then(() => {
-                            history.push("/");
-                          });
-                      }
-                    }}
-                  >
-                    Delete
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-            ) : null
-          ) : null}
+                  Edit
+                </Dropdown.Item>
+                <Dropdown.Item
+                  onClick={() => {
+                    if (window.confirm("삭제하시겠습니까?")) {
+                      db.collection("post")
+                        .doc(urlSearch.get("docId"))
+                        .delete();
+                      db.collection("user-info")
+                        .doc(uid)
+                        .collection("posts")
+                        .doc(urlSearch.get("docId"))
+                        .delete()
+                        .then(() => {
+                          history.push("/");
+                        });
+                    }
+                  }}
+                >
+                  Delete
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+          )}
         </Card.Header>
         <Card.Body>
           <Card.Text>{parse(content)}</Card.Text>
@@ -161,6 +159,7 @@ export default function Comments(props) {
         <Card.Header className="d-flex flex-column align-items-end px-0">
           <Editor
             apiKey={tinymcekey}
+            value={text}
             onInit={(evt, editor) => (editorRef.current = editor)}
             outputFormat="text"
             onEditorChange={(newText) => setText(newText)}
@@ -230,7 +229,7 @@ export default function Comments(props) {
                         timeStamp: Timestamp.now(),
                       })
                       .then(() => {
-                        location.reload();
+                        setText("");
                       });
                   }
                 }}
@@ -283,49 +282,47 @@ export default function Comments(props) {
                 </p>
               </div>
 
-              {user != null ? (
-                uid == a.data.uid ? (
-                  <Dropdown>
-                    <Dropdown.Toggle
-                      size="sm"
-                      variant="white"
-                      style={{ lineHeight: "20px" }}
-                      className="more shadow-none rounded-pill px-1 py-1"
-                    >
-                      <FiMoreHorizontal
-                        size="23"
-                        color="#6E6E6E"
-                      ></FiMoreHorizontal>
-                    </Dropdown.Toggle>
+              {user != null && uid == a.data.uid && (
+                <Dropdown>
+                  <Dropdown.Toggle
+                    size="sm"
+                    variant="white"
+                    style={{ lineHeight: "20px" }}
+                    className="more shadow-none rounded-pill px-1 py-1"
+                  >
+                    <FiMoreHorizontal
+                      size="23"
+                      color="#6E6E6E"
+                    ></FiMoreHorizontal>
+                  </Dropdown.Toggle>
 
-                    <Dropdown.Menu
-                      align="end"
-                      variant="dark"
-                      style={{ minWidth: "120px", fontSize: "18px" }}
+                  <Dropdown.Menu
+                    align="end"
+                    variant="dark"
+                    style={{ minWidth: "120px", fontSize: "18px" }}
+                  >
+                    <Dropdown.Item onClick={() => {}}>Edit</Dropdown.Item>
+                    <Dropdown.Item
+                      onClick={() => {
+                        if (window.confirm("댓글을 삭제하시겠습니까?")) {
+                          db.collection("post")
+                            .doc(urlSearch.get("docId"))
+                            .collection("comment")
+                            .doc(a.data.commentId)
+                            .delete();
+                          db.collection("user-info")
+                            .doc(uid)
+                            .collection("comments")
+                            .doc(a.data.commentId)
+                            .delete();
+                        }
+                      }}
                     >
-                      <Dropdown.Item onClick={() => {}}>Edit</Dropdown.Item>
-                      <Dropdown.Item
-                        onClick={() => {
-                          if (window.confirm("댓글을 삭제하시겠습니까?")) {
-                            db.collection("post")
-                              .doc(urlSearch.get("docId"))
-                              .collection("comment")
-                              .doc(a.data.commentId)
-                              .delete();
-                            db.collection("user-info")
-                              .doc(uid)
-                              .collection("comments")
-                              .doc(a.data.commentId)
-                              .delete();
-                          }
-                        }}
-                      >
-                        Delete
-                      </Dropdown.Item>
-                    </Dropdown.Menu>
-                  </Dropdown>
-                ) : null
-              ) : null}
+                      Delete
+                    </Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+              )}
             </div>
 
             <div

@@ -93,55 +93,53 @@ export default function CreateList(props) {
         <Card.Header className="d-flex justify-content-between" as="h5">
           {props.title}
 
-          {user != null ? (
-            uid == props.uid ? (
-              <Dropdown>
-                <Dropdown.Toggle
-                  size="sm"
-                  variant="light"
-                  style={{ lineHeight: "20px" }}
-                  className="more shadow-none rounded-pill px-1 py-1"
-                >
-                  <FiMoreHorizontal size="23"></FiMoreHorizontal>
-                </Dropdown.Toggle>
+          {user != null && uid == props.uid && (
+            <Dropdown>
+              <Dropdown.Toggle
+                size="sm"
+                variant="light"
+                style={{ lineHeight: "20px" }}
+                className="more shadow-none rounded-pill px-1 py-1"
+              >
+                <FiMoreHorizontal size="23"></FiMoreHorizontal>
+              </Dropdown.Toggle>
 
-                <Dropdown.Menu
-                  align="end"
-                  variant="dark"
-                  style={{ minWidth: "160px" }}
+              <Dropdown.Menu
+                align="end"
+                variant="dark"
+                style={{ minWidth: "160px" }}
+              >
+                <Dropdown.Item
+                  onClick={() => {
+                    history.push(`/edit?docId=${props.docId}`);
+                  }}
                 >
-                  <Dropdown.Item
-                    onClick={() => {
-                      history.push(`/edit?docId=${props.docId}`);
-                    }}
-                  >
-                    Edit
-                  </Dropdown.Item>
-                  <Dropdown.Item
-                    onClick={() => {
-                      if (window.confirm("삭제하시겠습니까?")) {
-                        db.collection("post")
-                          .doc(props.docId)
-                          .delete();
-                        db.collection("user-info")
-                          .doc(uid)
-                          .collection("posts")
-                          .doc(props.docId)
-                          .delete()
-                          .then(() => {
-                            // location.reload();
-                            // map돌릴때 key값을 고유한 값(ex. docID)을 매기니까 리로드 필요 없어짐
-                            //key값을 index로 주면 delete할때 순서가 엉망이 됨
-                          });
-                      }
-                    }}
-                  >
-                    Delete
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-            ) : null
-          ) : null}
+                  Edit
+                </Dropdown.Item>
+                <Dropdown.Item
+                  onClick={() => {
+                    if (window.confirm("삭제하시겠습니까?")) {
+                      db.collection("post")
+                        .doc(props.docId)
+                        .delete();
+                      db.collection("user-info")
+                        .doc(uid)
+                        .collection("posts")
+                        .doc(props.docId)
+                        .delete()
+                        .then(() => {
+                          // location.reload();
+                          // map돌릴때 key값을 고유한 값(ex. docID)을 매기니까 리로드 필요 없어짐
+                          //key값을 index로 주면 delete할때 순서가 엉망이 됨
+                        });
+                    }
+                  }}
+                >
+                  Delete
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+          )}
         </Card.Header>
         <Card.Body>
           <Card.Text>{parse(props.content)}</Card.Text>
@@ -193,11 +191,12 @@ export default function CreateList(props) {
                 justifyContent: "space-evenly",
               }}
             >
-              {like == false ? (
-                <FiHeart size="22" color="#FF6C85"></FiHeart>
-              ) : (
-                <FiHeart size="22" color="#FF6C85" fill="#FF6C85"></FiHeart>
-              )}
+              <FiHeart
+                size="22"
+                color="#FF6C85"
+                fill={like == true ? "#FF6C85" : "none"}
+              ></FiHeart>
+
               <span
                 style={{
                   maxWidth: "48px",

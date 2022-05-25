@@ -234,7 +234,7 @@ export default function Profile() {
                   .replace(/-/g, ".")}
               </span>
 
-              {uid != null ? (
+              {uid != null && (
                 <Dropdown>
                   <Dropdown.Toggle
                     size="sm"
@@ -278,7 +278,7 @@ export default function Profile() {
                     </Dropdown.Item>
                   </Dropdown.Menu>
                 </Dropdown>
-              ) : null}
+              )}
               {/* </div> */}
             </ListGroup.Item>
           ))}
@@ -309,7 +309,7 @@ export default function Profile() {
                   .replace(/-/g, ".")}
               </span>
 
-              {uid != null ? (
+              {uid != null && (
                 <Dropdown>
                   <Dropdown.Toggle
                     size="sm"
@@ -355,7 +355,7 @@ export default function Profile() {
                     </Dropdown.Item>
                   </Dropdown.Menu>
                 </Dropdown>
-              ) : null}
+              )}
               {/* </div> */}
             </ListGroup.Item>
           ))}
