@@ -1,0 +1,255 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-size: 18px;
+  /* margin: auto;
+  width: 640px; */
+  background: #e2e8f0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+
+.main {
+  margin: auto;
+  max-width: 768px;
+}
+
+.card-header {
+  line-height: 36px;
+  font-size: 20px;
+}
+
+.board {
+  max-width: 768px;
+  margin-top: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+iframe,
+video {
+  max-width: 28vw;
+  max-height: 15.75vw;
+}
+
+.card-body img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.editor {
+  width: 100%;
+  max-width: 768px;
+  height: 800px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin: auto;
+  background: white;
+  border-radius: 16px;
+}
+
+.dropdown-toggle::after {
+  display: none;
+}
+
+.more:hover {
+  background-color: rgba(190, 190, 190, 0.3);
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus,
+.dropdown-item:active {
+  color: #000;
+  background-color: rgb(208, 208, 208, 0.3);
+}
+
+.user {
+  width: 100%;
+  max-width: 768px;
+  min-height: 667px;
+  margin: auto;
+  /* display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin: auto; */
+  background: white;
+  border-radius: 10px;
+}
+
+.nav-link {
+  color: #65676b;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.nav-link:hover,
+.nav-link:focus {
+  color: #1876f2;
+}
+
+.active {
+  color: #1876f2;
+  border-bottom: 5px solid #1876f2;
+}
+
+.list-group-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 16px;
+  padding: 5px 20px;
+  height: 50px;
+}
+
+.list-group-item a {
+  text-decoration: none;
+  color: black;
+}
+
+.list-group-item p {
+  width: 480px;
+  margin: 0;
+  height: 40px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+input {
+  outline: none;
+  font-size: 16px;
+  font-family: sans-serif;
+  font-weight: 400;
+}
+
+.card-footer > p {
+  margin: 0;
+}
+
+.card-footer {
+  font-size: 19px;
+}
+
+/* .footer:focus, */
+.footer:active {
+  background-color: rgba(190, 190, 190, 0.3);
+}
+
+/* #search {
+  background-image: url(../public/search.svg);
+  background-size: 18px;
+  background-repeat: no-repeat;
+  background-position: 10px 9px;
+  padding-left: 40px;
+} */
+
+@media (hover: hover) {
+  .footer:hover {
+    background-color: rgba(190, 190, 190, 0.3);
+    /* outline: 1px solid rgba(0, 0, 0, 0.3); */
+  }
+
+  .list-group-item a:hover {
+    text-decoration: underline;
+  }
+}
+
+@media screen and (max-width: 1920px) {
+  iframe,
+  video {
+    max-width: 36vw;
+    max-height: 20.25vw;
+  }
+}
+
+@media screen and (max-width: 1680px) {
+  iframe,
+  video {
+    max-width: 41vw;
+    max-height: 23vw;
+  }
+}
+@media screen and (max-width: 1440px) {
+  iframe,
+  video {
+    max-width: 48vw;
+    max-height: 27vw;
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  iframe,
+  video {
+    max-width: 57vw;
+    max-height: 32vw;
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  iframe,
+  video {
+    max-width: 68vw;
+    max-height: 38.25vw;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  body {
+    font-size: 16px;
+  }
+  .card-header {
+    font-size: 18px;
+  }
+  .card-footer svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  iframe,
+  video {
+    max-width: 88vw;
+    max-height: 49.5vw;
+  }
+
+  .list-group-item {
+    font-size: 15px;
+  }
+}
+
+@media screen and (max-width: 576px) {
+  body {
+    font-size: 14px;
+  }
+  .card-header {
+    font-size: 16px;
+  }
+  .card-footer {
+    font-size: 18px;
+  }
+  .card-footer svg {
+    width: 20px;
+    height: 20px;
+  }
+  .nav-link {
+    font-size: 18px;
+  }
+
+  .list-group-item {
+    font-size: 14px;
+  }
+  .list-group-item p {
+    width: 200px;
+  }
+}
