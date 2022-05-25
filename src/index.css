@@ -147,6 +147,14 @@ input {
   background-color: rgba(190, 190, 190, 0.3);
 }
 
+#comment:focus,
+#comment:active {
+  background-color: inherit;
+  outline: none;
+  box-shadow: none;
+  color: inherit;
+}
+
 /* #search {
   background-image: url(../public/search.svg);
   background-size: 18px;
@@ -164,6 +172,11 @@ input {
   .list-group-item a:hover {
     text-decoration: underline;
   }
+  /* 
+  #comment:hover {
+    background-color: rgba(33, 37, 41, 0.9);
+    color: inherit;
+  } */
 }
 
 @media screen and (max-width: 1920px) {

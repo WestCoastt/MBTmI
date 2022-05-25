@@ -198,7 +198,9 @@ export default function Comments(props) {
             </span>
             {user != null ? (
               <Button
+                disabled={text.length == 0 && true}
                 type="submit"
+                id="comment"
                 className="rounded-pill"
                 variant="outline-dark"
                 size="sm"
