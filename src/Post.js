@@ -96,18 +96,20 @@ export default function Post() {
         ></input>
         <Editor
           apiKey={tinymcekey}
-          // style={{ width: "100%",}}
           onInit={(evt, editor) => (editorRef.current = editor)}
           outputFormat="text"
           onEditorChange={(newText) => setText(newText)}
           init={{
             width: "100%",
-            height: "100%",
+            min_height: 700,
             mode: "exact",
             language: "ko_KR",
             menubar: false,
             branding: false,
             statusbar: false,
+            elementpath: false,
+            contextmenu: false,
+            // autoresize_on_init: false,
             file_picker_types: "file image media",
             extended_valid_elements:
               "iframe[src|frameborder|allowfullscreen|style|scrolling|class|width|height|name|align]",
@@ -118,6 +120,8 @@ export default function Post() {
               "media",
               "emoticons",
               "lists",
+              "autolink",
+              "autoresize",
             ],
             toolbar:
               "bold italic strikethrough underline forecolor backcolor emoticons image media link ",

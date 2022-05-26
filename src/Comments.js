@@ -164,9 +164,11 @@ export default function Comments(props) {
             outputFormat="text"
             onEditorChange={(newText) => setText(newText)}
             init={{
-              height: 180,
+              // max_height: 180,
+              height: 60,
               width: "100%",
               language: "ko_KR",
+              placeholder: "댓글을 입력하세요.",
               menubar: false,
               branding: false,
               statusbar: false,

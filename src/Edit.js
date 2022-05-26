@@ -91,12 +91,14 @@ export default function Edit() {
           onEditorChange={(newText) => setText(newText)}
           init={{
             width: "100%",
-            height: "100%",
+            min_height: 700,
+            mode: "exact",
             language: "ko_KR",
             menubar: false,
             branding: false,
             statusbar: false,
-            automatic_uploads: true,
+            elementpath: false,
+            contextmenu: false,
             file_picker_types: "file image media",
             extended_valid_elements:
               "iframe[src|frameborder|allowfullscreen|style|scrolling|class|width|height|name|align]",

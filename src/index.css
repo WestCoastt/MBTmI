@@ -37,7 +37,13 @@ code {
   align-items: flex-end;
 }
 
-iframe,
+/* iframe,
+video {
+  max-width: 28vw;
+  max-height: 15.75vw;
+} */
+
+.card-body iframe,
 video {
   max-width: 28vw;
   max-height: 15.75vw;
@@ -51,7 +57,7 @@ video {
 .editor {
   width: 100%;
   max-width: 768px;
-  height: 800px;
+  /* height: 800px; */
   margin: auto;
   display: flex;
   flex-direction: column;
@@ -180,7 +186,7 @@ input {
 }
 
 @media screen and (max-width: 1920px) {
-  iframe,
+  .card-body iframe,
   video {
     max-width: 36vw;
     max-height: 20.25vw;
@@ -188,14 +194,14 @@ input {
 }
 
 @media screen and (max-width: 1680px) {
-  iframe,
+  .card-body iframe,
   video {
     max-width: 41vw;
     max-height: 23vw;
   }
 }
 @media screen and (max-width: 1440px) {
-  iframe,
+  .card-body iframe,
   video {
     max-width: 48vw;
     max-height: 27vw;
@@ -203,7 +209,7 @@ input {
 }
 
 @media screen and (max-width: 1200px) {
-  iframe,
+  .card-body iframe,
   video {
     max-width: 57vw;
     max-height: 32vw;
@@ -211,7 +217,7 @@ input {
 }
 
 @media screen and (max-width: 1024px) {
-  iframe,
+  .card-body iframe,
   video {
     max-width: 68vw;
     max-height: 38.25vw;
@@ -230,7 +236,7 @@ input {
     height: 21px;
   }
 
-  iframe,
+  .card-body iframe,
   video {
     max-width: 88vw;
     max-height: 49.5vw;
