@@ -53,9 +53,14 @@ export default function Post() {
             size="sm"
             onClick={() => {
               const newDoc = db.collection("post").doc();
+
               {
                 noInfo == true
                   ? history.push("/user?uid=" + user.uid)
+                  : title.length == 0
+                  ? alert("제목을 입력하세요.")
+                  : text.length == 0
+                  ? alert("내용을 입력하세요.")
                   : newDoc
                       .set({
                         title: title,

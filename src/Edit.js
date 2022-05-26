@@ -53,15 +53,22 @@ export default function Edit() {
             size="sm"
             onClick={() => {
               if (window.confirm("저장하시겠습니까?")) {
-                db.collection("post")
-                  .doc(urlSearch.get("docId"))
-                  .update({
-                    title: title,
-                    content: text,
-                  })
-                  .then(() => {
-                    history.push(`/comments?docId=${urlSearch.get("docId")}`);
-                  });
+                title.length == 0
+                  ? alert("제목을 입력하세요.")
+                  : text.length == 0
+                  ? alert("내용을 입력하세요.")
+                  : db
+                      .collection("post")
+                      .doc(urlSearch.get("docId"))
+                      .update({
+                        title: title,
+                        content: text,
+                      })
+                      .then(() => {
+                        history.push(
+                          `/comments?docId=${urlSearch.get("docId")}`
+                        );
+                      });
 
                 db.collection("user-info")
                   .doc(uid)
