@@ -106,14 +106,17 @@ export default function Edit() {
             statusbar: false,
             elementpath: false,
             contextmenu: false,
+            default_link_target: "_blank",
             file_picker_types: "file image media",
             extended_valid_elements:
               "iframe[src|frameborder|allowfullscreen|style|scrolling|class|width|height|name|align]",
+            extended_valid_elements: "a[href|target=_blank]",
             plugins: [
               "insertdatetime media table paste code help wordcount",
               "image",
               "link",
               "media",
+              "autolink",
               "emoticons",
               "lists",
             ],

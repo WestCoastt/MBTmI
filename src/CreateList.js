@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, Button, Dropdown } from "react-bootstrap";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
+import { Link } from "react-router-dom";
 import "./App.css";
 import { db } from "./index.js";
 import parse from "html-react-parser";
@@ -110,9 +111,11 @@ export default function CreateList(props) {
                 style={{ minWidth: "160px" }}
               >
                 <Dropdown.Item
-                  onClick={() => {
-                    history.push(`/edit?docId=${props.docId}`);
-                  }}
+                  as={Link}
+                  to={`/edit?docId=${props.docId}`}
+                  // onClick={() => {
+                  //   history.push(`/edit?docId=${props.docId}`);
+                  // }}
                 >
                   Edit
                 </Dropdown.Item>

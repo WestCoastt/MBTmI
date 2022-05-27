@@ -1,13 +1,6 @@
 /* eslint no-restricted-globals: ["off"] */
 import React, { useState, useEffect } from "react";
-import {
-  Button,
-  Navbar,
-  Container,
-  Dropdown,
-  Form,
-  FormControl,
-} from "react-bootstrap";
+import { Button, Navbar, Container, Dropdown } from "react-bootstrap";
 import { Route, Link } from "react-router-dom";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import "./App.css";
@@ -16,7 +9,9 @@ import Edit from "./Edit";
 import CreateList from "./CreateList";
 import Comments from "./Comments";
 import Search from "./Search";
-import Profile from "./Profile";
+import MyProfile from "./MyProfile.js";
+import PostsTab from "./PostsTab.js";
+import CommentsTab from "./CommentsTab.js";
 import UserInfo from "./UserInfo";
 import { db } from "./index.js";
 import {
@@ -109,6 +104,7 @@ function App() {
         .get()
         .then((result) => {
           setNickname(result.data().nickname);
+          window.localStorage.setItem("nickname", result.data().nickname);
         })
         .catch(() => {
           setNickname();
@@ -190,7 +186,7 @@ function App() {
               <FiSearch size="22"></FiSearch>
             </div> */}
 
-            <a
+            <Link
               style={{
                 margin: "auto",
                 width: "40px",
@@ -201,10 +197,10 @@ function App() {
                 lineHeight: "36px",
                 textAlign: "center",
               }}
-              href="/search"
+              to="/search"
             >
               <FiSearch size="22"></FiSearch>
-            </a>
+            </Link>
 
             {uid != null ? (
               <Dropdown>
@@ -219,12 +215,15 @@ function App() {
 
                 <Dropdown.Menu align="end" variant="light">
                   <Dropdown.Item
-                    onClick={() => {
+                    as={Link}
+                    to={
                       nickname != null
-                        ? history.push("/profile/" + nickname)
-                        : history.push("/user?uid=" + user.uid);
+                        ? `${nickname}/myprofile`
+                        : `/user?uid=${uid}`
+                    }
+                    style={{
+                      display: "flex",
                     }}
-                    style={{ display: "flex" }}
                   >
                     <FaUserCircle size="44" color="#a0aec0"></FaUserCircle>
                     <div
@@ -350,12 +349,26 @@ function App() {
         <Route path="/user">
           <UserInfo></UserInfo>
         </Route>
-        <Route path="/profile">
-          <Profile></Profile>
+
+        <Route path={`/${nickname}/myprofile`}>
+          <MyProfile></MyProfile>
         </Route>
+
+        <Route path={`/${nickname}/posts`}>
+          <PostsTab></PostsTab>
+        </Route>
+
+        <Route path={`/${nickname}/comments`}>
+          <CommentsTab></CommentsTab>
+        </Route>
+
         <Route path="/comments">
           <Comments></Comments>
         </Route>
+
+        {/* <Route path="*">
+          <div>페이지를 찾을 수 없습니다.(수정)</div>
+        </Route> */}
       </div>
     </div>
   );
