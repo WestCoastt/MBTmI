@@ -162,6 +162,7 @@ export default function Post() {
                 "accept",
                 ".jpg, .jpeg, .svg, .png, .gif, .tiff, .webp, .mp4, .m4v, .mov, .avi, .wmv"
               );
+
               input.onchange = function() {
                 // var file = this.files[0];
                 if (this.files[0].size > 1073741824) {

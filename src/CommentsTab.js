@@ -7,7 +7,6 @@ import { FiMoreHorizontal } from "react-icons/fi";
 
 export default function CommentsTab() {
   const uid = window.localStorage.getItem("uid");
-  const nickname = window.localStorage.getItem("nickname");
 
   const [comments, setComments] = useState([]);
 
@@ -26,49 +25,12 @@ export default function CommentsTab() {
 
   return (
     <div className="user">
-      <Nav
-        activeKey="link-2"
-        style={{
-          margin: "6px 0 6px 10px",
-        }}
-      >
-        <Nav.Item>
-          <Nav.Link
-            as={Link}
-            to={`/${nickname}/myprofile`}
-            className="px-1 mx-1"
-          >
-            My Profile
-          </Nav.Link>
-        </Nav.Item>
-        <Nav.Item>
-          <Nav.Link
-            as={Link}
-            to={`/${nickname}/posts`}
-            eventKey="link-1"
-            className="px-1 mx-1"
-          >
-            Posts
-          </Nav.Link>
-        </Nav.Item>
-        <Nav.Item>
-          <Nav.Link
-            as={Link}
-            to={`/${nickname}/comments`}
-            eventKey="link-2"
-            className="px-1 mx-1"
-          >
-            Comments
-          </Nav.Link>
-        </Nav.Item>
-      </Nav>
-
       <ListGroup variant="flush" style={{ marginTop: "10px" }}>
         {comments.map((a, i) => (
           <ListGroup.Item key={a.data.commentId}>
             {/* <div style={{ display: "flex", justifyContent: "space-between" }}> */}
 
-            <Link to={`/comments?docId=${a.data.docId}`}>
+            <Link to={`/comments?docId=${a.data.docId}`} className="tab-items">
               <span style={{ lineHeight: "36px", width: "70%" }}>
                 {parse(a.data.comment)}
               </span>

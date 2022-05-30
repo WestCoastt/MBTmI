@@ -6,7 +6,6 @@ import { FiMoreHorizontal } from "react-icons/fi";
 
 export default function PostsTab() {
   const uid = window.localStorage.getItem("uid");
-  const nickname = window.localStorage.getItem("nickname");
 
   const [posts, setPosts] = useState([]);
 
@@ -25,49 +24,12 @@ export default function PostsTab() {
 
   return (
     <div className="user">
-      <Nav
-        activeKey="link-1"
-        style={{
-          margin: "6px 0 6px 10px",
-        }}
-      >
-        <Nav.Item>
-          <Nav.Link
-            as={Link}
-            to={`/${nickname}/myprofile`}
-            className="px-1 mx-1"
-          >
-            My Profile
-          </Nav.Link>
-        </Nav.Item>
-        <Nav.Item>
-          <Nav.Link
-            as={Link}
-            to={`/${nickname}/posts`}
-            eventKey="link-1"
-            className="px-1 mx-1"
-          >
-            Posts
-          </Nav.Link>
-        </Nav.Item>
-        <Nav.Item>
-          <Nav.Link
-            as={Link}
-            to={`/${nickname}/comments`}
-            eventKey="link-2"
-            className="px-1 mx-1"
-          >
-            Comments
-          </Nav.Link>
-        </Nav.Item>
-      </Nav>
-
       <ListGroup variant="flush" style={{ marginTop: "10px" }}>
         {posts.map((a, i) => (
           <ListGroup.Item key={a.data.docId}>
             {/* <div style={{ display: "flex", justifyContent: "space-between" }}> */}
 
-            <Link to={`/comments?docId=${a.data.docId}`}>
+            <Link to={`/comments?docId=${a.data.docId}`} className="tab-items">
               <span style={{ lineHeight: "36px", width: "70%" }}>
                 <p>{a.data.title}</p>
               </span>

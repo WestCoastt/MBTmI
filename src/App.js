@@ -9,9 +9,7 @@ import Edit from "./Edit";
 import CreateList from "./CreateList";
 import Comments from "./Comments";
 import Search from "./Search";
-import MyProfile from "./MyProfile.js";
-import PostsTab from "./PostsTab.js";
-import CommentsTab from "./CommentsTab.js";
+import Profile from "./Profile";
 import UserInfo from "./UserInfo";
 import { db } from "./index.js";
 import {
@@ -104,7 +102,6 @@ function App() {
         .get()
         .then((result) => {
           setNickname(result.data().nickname);
-          window.localStorage.setItem("nickname", result.data().nickname);
         })
         .catch(() => {
           setNickname();
@@ -218,7 +215,8 @@ function App() {
                     as={Link}
                     to={
                       nickname != null
-                        ? `${nickname}/myprofile`
+                        ? // ? `${nickname}/myprofile`
+                          `${nickname}`
                         : `/user?uid=${uid}`
                     }
                     style={{
@@ -349,23 +347,12 @@ function App() {
         <Route path="/user">
           <UserInfo></UserInfo>
         </Route>
-
-        <Route path={`/${nickname}/myprofile`}>
-          <MyProfile></MyProfile>
+        <Route path={`/${nickname}/`}>
+          <Profile></Profile>
         </Route>
-
-        <Route path={`/${nickname}/posts`}>
-          <PostsTab></PostsTab>
-        </Route>
-
-        <Route path={`/${nickname}/comments`}>
-          <CommentsTab></CommentsTab>
-        </Route>
-
         <Route path="/comments">
           <Comments></Comments>
         </Route>
-
         {/* <Route path="*">
           <div>페이지를 찾을 수 없습니다.(수정)</div>
         </Route> */}
