@@ -15,7 +15,7 @@ import { FiHeart, FiMoreHorizontal } from "react-icons/fi";
 import { FaRegComment, FaUserCircle } from "react-icons/fa";
 import { useHistory } from "react-router-dom";
 
-export default function Comments(props) {
+export default function Comments() {
   const uid = window.localStorage.getItem("uid");
   const urlSearch = new URLSearchParams(window.location.search);
   const provider = new GoogleAuthProvider();
@@ -53,6 +53,10 @@ export default function Comments(props) {
         setTitle(result.data().title);
         setContent(result.data().content);
         setUserId(result.data().uid);
+      })
+      .catch(() => {
+        window.alert("삭제되었거나 존재하지 않는 게시물입니다.");
+        history.goBack();
       });
   }, []);
 

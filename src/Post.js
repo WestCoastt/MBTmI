@@ -1,11 +1,12 @@
 import { Timestamp } from "firebase/firestore";
 import React, { useState, useRef } from "react";
-import { Button } from "react-bootstrap";
+import { Button, Form, Col } from "react-bootstrap";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { db, storage } from "./index.js";
 import { getAuth } from "firebase/auth";
 import { Editor } from "@tinymce/tinymce-react";
 // import { arrayUnion, arrayRemove } from "firebase/firestore";
+import ReactLoading from "react-loading";
 
 export default function Post() {
   const uid = window.localStorage.getItem("uid");
@@ -18,6 +19,29 @@ export default function Post() {
   const [text, setText] = useState("");
   const editorRef = useRef(null);
   const [noInfo, setNoInfo] = useState();
+  const [category, setCategory] = useState();
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const mbti = [
+    "카테고리",
+    "ISTJ",
+    "ISFJ",
+    "ISTP",
+    "ISFP",
+    "INTJ",
+    "INFJ",
+    "INTP",
+    "INFP",
+    "ESTJ",
+    "ESFJ",
+    "ESTP",
+    "ESFP",
+    "ENTJ",
+    "ENFJ",
+    "ENTP",
+    "ENFP",
+  ];
 
   if (user != null) {
     db.collection("user-info")
@@ -31,7 +55,6 @@ export default function Post() {
         }
       });
   }
-
   // const [postBtn, setPostBtn] = useState(true);
 
   // onAuthStateChanged(auth, (user) => {
@@ -46,57 +69,83 @@ export default function Post() {
   return (
     <>
       <div className="editor">
-        {user != null && (
-          <Button
-            className="rounded-pill"
-            variant="outline-dark"
-            size="sm"
-            onClick={() => {
-              const newDoc = db.collection("post").doc();
-
-              {
-                noInfo == true
-                  ? history.push("/user?uid=" + user.uid)
-                  : title.length == 0
-                  ? alert("제목을 입력하세요.")
-                  : text.length == 0
-                  ? alert("내용을 입력하세요.")
-                  : newDoc
-                      .set({
-                        title: title,
-                        content: text,
-                        uid: uid,
-                        docId: newDoc.id,
-                        likedUser: [],
-                        likes: 0,
-                        timeStamp: Timestamp.now(),
-                      })
-                      .then(() => {
-                        history.push("/");
-                      });
-                // db.collection("user-info")
-                //   .doc(uid)
-                //   .update({
-                //     posts: arrayUnion({ title: title, docId: newDoc.id }),
-                //   });
-                db.collection("user-info")
-                  .doc(uid)
-                  .collection("posts")
-                  .doc(newDoc.id)
-                  .set({
-                    title: title,
-                    docId: newDoc.id,
-                    timeStamp: Timestamp.now(),
-                  });
-              }
-            }}
-          >
-            Post
-          </Button>
-        )}
+        <div
+          style={{
+            marginTop: "10px",
+            display: "flex",
+            justifyContent: "space-between",
+          }}
+        >
+          <Col sm="3">
+            <Form.Select
+              size="sm"
+              aria-label="Default select example"
+              onChange={(e) => {
+                setCategory(e.target.value);
+              }}
+            >
+              {mbti.map((a, i) => (
+                <option value={a} key={i}>
+                  {a}
+                </option>
+              ))}
+            </Form.Select>
+          </Col>
+          {user != null && (
+            <Button
+              className="rounded-pill"
+              variant="outline-dark"
+              size="sm"
+              onClick={() => {
+                const newDoc = db.collection("post").doc();
+                {
+                  noInfo == true
+                    ? history.push("/user?uid=" + user.uid)
+                    : (category == null) | (category == "카테고리")
+                    ? alert("카테고리를 선택하세요.")
+                    : title.length == 0
+                    ? alert("제목을 입력하세요.")
+                    : text.length == 0
+                    ? alert("내용을 입력하세요.")
+                    : newDoc
+                        .set({
+                          category: category,
+                          title: title,
+                          content: text,
+                          uid: uid,
+                          docId: newDoc.id,
+                          likedUser: [],
+                          likes: 0,
+                          timeStamp: Timestamp.now(),
+                        })
+                        .then(() => {
+                          history.push("/");
+                        }) &&
+                      db
+                        .collection("user-info")
+                        .doc(uid)
+                        .collection("posts")
+                        .doc(newDoc.id)
+                        .set({
+                          title: title,
+                          docId: newDoc.id,
+                          timeStamp: Timestamp.now(),
+                        });
+                  // db.collection("user-info")
+                  //   .doc(uid)
+                  //   .update({
+                  //     posts: arrayUnion({ title: title, docId: newDoc.id }),
+                  //   });
+                }
+              }}
+            >
+              Post
+            </Button>
+          )}
+        </div>
         <input
           placeholder="Title"
-          style={{ width: "100%", maxWidth: "768px", margin: "10px 0 0 0" }}
+          style={{ width: "100%", maxWidth: "768px", margin: "8px 0 0 0" }}
           onChange={(e) => setTitle(e.target.value)}
         ></input>
         <Editor
@@ -169,6 +218,7 @@ export default function Post() {
                   alert("1GB 이하의 파일만 첨부할 수 있습니다.");
                   this.value = "";
                 } else {
+                  setIsLoading(true);
                   var file = this.files[0];
 
                   var array = new Uint32Array(5);
@@ -196,6 +246,7 @@ export default function Post() {
                         upload.snapshot.ref.getDownloadURL().then((url) => {
                           console.log(url);
                           cb(url);
+                          setIsLoading(false);
                         });
                       }
                     );
@@ -224,8 +275,13 @@ export default function Post() {
               "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
             // content_style: "img {max-width: 600px}",
           }}
-        />
+        ></Editor>
       </div>
+      {isLoading && (
+        <div className="upload">
+          <ReactLoading type="spin" color="#0d6efd" width="36px"></ReactLoading>
+        </div>
+      )}
     </>
   );
 }

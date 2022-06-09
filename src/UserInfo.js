@@ -37,7 +37,7 @@ export default function UserInfo() {
 
   const auth = getAuth();
   const user = auth.currentUser;
-  const [nickError, setNickError] = useState("");
+  const [nickCheck, setNickCheck] = useState("");
   const [nickname, setNickname] = useState("");
   const [mbti, setMBTI] = useState("");
   const [year, setYear] = useState("");
@@ -81,7 +81,7 @@ export default function UserInfo() {
         .get()
         .then((querySnapshot) => {
           querySnapshot.forEach((doc) => {
-            setNickError("사용 가능한 닉네임입니다");
+            setNickCheck("사용 가능한 닉네임입니다");
           });
         });
       db.collection("user-info")
@@ -89,11 +89,11 @@ export default function UserInfo() {
         .get()
         .then((querySnapshot) => {
           querySnapshot.forEach((doc) => {
-            setNickError("이미 사용중 입니다");
+            setNickCheck("이미 사용중 입니다");
           });
         });
     } else if (regExp.test(nickname) == false) {
-      setNickError("2~12자의 한글, 영문, 숫자, 언더바( _ )만 가능");
+      setNickCheck("2~12자의 한글, 영문, 숫자, 언더바( _ )만 가능");
     }
   }, [nickname]);
 
@@ -133,7 +133,7 @@ export default function UserInfo() {
             </Col>
             <span
               style={
-                nickError == "이미 사용중 입니다"
+                nickCheck == "이미 사용중 입니다"
                   ? {
                       color: "red",
                       fontSize: "15px",
@@ -147,7 +147,7 @@ export default function UserInfo() {
                     }
               }
             >
-              {nickError}
+              {nickCheck}
             </span>
           </Form.Group>
 
@@ -249,26 +249,35 @@ export default function UserInfo() {
         <Button
           className="rounded-pill float-end mt-5 me-2"
           variant="outline-dark"
-          type="submit"
           onClick={() => {
-            db.collection("user-info")
-              .doc(user.uid)
-              .set({
-                nickname: nickname,
-                gender: gender,
-                birthday: birthDay,
-                MBTI: mbti,
-              })
-              .then(() => {
-                // db.collection("comment")
-                // .where("nickname", "==", nickname)
-
-                history.push("/");
-                location.reload();
-              });
+            {
+              nickCheck !== "사용 가능한 닉네임입니다"
+                ? alert("닉네임을 확인하세요.")
+                : gender.length == 0
+                ? alert("성별을 선택하세요.")
+                : birthDay.length < 8
+                ? alert("생년월일을 입력하세요.")
+                : mbti.length == 0
+                ? alert("MBTI를 입력하세요.")
+                : db
+                    .collection("user-info")
+                    .doc(user.uid)
+                    .set({
+                      nickname: nickname,
+                      gender: gender,
+                      birthday: birthDay,
+                      MBTI: mbti,
+                    })
+                    .then(() => {
+                      // db.collection("comment")
+                      // .where("nickname", "==", nickname)
+                      history.push("/");
+                      // location.reload();
+                    });
+            }
           }}
         >
-          Submit
+          저장
         </Button>
       </Form>
     </div>

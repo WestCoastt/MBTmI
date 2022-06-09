@@ -1,6 +1,13 @@
 /* eslint no-restricted-globals: ["off"] */
 import React, { useState, useEffect } from "react";
-import { Button, Navbar, Container, Dropdown } from "react-bootstrap";
+import {
+  Button,
+  Navbar,
+  Container,
+  Dropdown,
+  Form,
+  Col,
+} from "react-bootstrap";
 import { Route, Link } from "react-router-dom";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import "./App.css";
@@ -27,6 +34,7 @@ import { BsPencilSquare } from "react-icons/bs";
 
 function App() {
   const uid = window.localStorage.getItem("uid");
+  const [nickname, setNickname] = useState("");
   const history = useHistory();
   const [post, setPost] = useState([]);
   const [signUp, setSignUP] = useState(false);
@@ -37,8 +45,29 @@ function App() {
     setSignUP(send);
   };
 
+  const [category, setCategory] = useState("전체글");
+
+  const mbti = [
+    "전체글",
+    "ISTJ",
+    "ISFJ",
+    "ISTP",
+    "ISFP",
+    "INTJ",
+    "INFJ",
+    "INTP",
+    "INFP",
+    "ESTJ",
+    "ESFJ",
+    "ESTP",
+    "ESFP",
+    "ENTJ",
+    "ENFJ",
+    "ENTP",
+    "ENFP",
+  ];
+
   const [create, setCreate] = useState(false);
-  const [nickname, setNickname] = useState();
 
   const [lastVisible, setLastVisible] = useState(null);
 
@@ -55,41 +84,92 @@ function App() {
       });
   }, []);
 
+  useEffect(() => {
+    {
+      category == "전체글"
+        ? db
+            .collection("post")
+            .orderBy("timeStamp", "desc")
+            .limit(20)
+            .onSnapshot((snapshot) => {
+              const postArr = snapshot.docs.map((doc) => ({
+                data: doc.data(),
+              }));
+              setPost(postArr);
+              setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
+            })
+        : db
+            .collection("post")
+            .where("category", "==", category)
+            .orderBy("timeStamp", "desc")
+            .limit(10)
+            .onSnapshot((snapshot) => {
+              const postArr = snapshot.docs.map((doc) => ({
+                data: doc.data(),
+              }));
+              setPost(postArr);
+              setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
+            });
+    }
+  }, [category]);
+
   const [target, setTarget] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const onIntersect = async ([entry], observer) => {
-      if (entry.isIntersecting && !isLoading) {
-        observer.unobserve(entry.target);
-        setIsLoading(true);
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        await db
-          .collection("post")
-          .orderBy("timeStamp", "desc")
-          .startAfter(lastVisible)
-          .limit(10)
-          .onSnapshot((snapshot) => {
-            const addArr = snapshot.docs.map((doc) => ({
-              data: doc.data(),
-            }));
-            // console.log([...post, ...addArr]);
-            setPost([...post, ...addArr]);
-            setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
-            // console.log(lastVisible);
-          });
-        setIsLoading(false);
-        observer.observe(entry.target);
+    console.log(post.length);
+    if (post.length % 10 == 0) {
+      console.log(post.length % 10 == 0);
+      const onIntersect = async ([entry], observer) => {
+        if (entry.isIntersecting && !isLoading) {
+          observer.unobserve(entry.target);
+          setIsLoading(true);
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          if (category == "전체글") {
+            await db
+              .collection("post")
+              .orderBy("timeStamp", "desc")
+              .startAfter(lastVisible)
+              .limit(10)
+              .onSnapshot((snapshot) => {
+                const addArr = snapshot.docs.map((doc) => ({
+                  data: doc.data(),
+                }));
+                // console.log([...post, ...addArr]);
+                setPost([...post, ...addArr]);
+                setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
+              });
+          } else if (category != "전체글" && post.length % 10 == 0) {
+            await db
+              .collection("post")
+              .orderBy("timeStamp", "desc")
+              .where("category", "==", category)
+              .startAfter(lastVisible)
+              .limit(1)
+              .onSnapshot((snapshot) => {
+                const addArr = snapshot.docs.map((doc) => ({
+                  data: doc.data(),
+                }));
+                setPost([...post, ...addArr]);
+                setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
+                // console.log(lastVisible);
+              });
+          }
+
+          setIsLoading(false);
+          observer.observe(entry.target);
+        }
+      };
+      let observer;
+      if (target) {
+        observer = new IntersectionObserver(onIntersect, {
+          threshold: 1,
+          rootMargin: "10px 0px",
+        });
+        observer.observe(target);
       }
-    };
-    let observer;
-    if (target) {
-      observer = new IntersectionObserver(onIntersect, {
-        threshold: 1,
-      });
-      observer.observe(target);
+      return () => observer && observer.disconnect();
     }
-    return () => observer && observer.disconnect();
   }, [lastVisible]);
 
   onAuthStateChanged(auth, (user) => {
@@ -102,9 +182,10 @@ function App() {
         .get()
         .then((result) => {
           setNickname(result.data().nickname);
+          window.localStorage.setItem("nickname", result.data().nickname);
         })
         .catch(() => {
-          setNickname();
+          setNickname(null);
         });
     } else {
       setCreate(false);
@@ -159,7 +240,13 @@ function App() {
       >
         <Container fluid className="px-2" style={{ width: "768px" }}>
           <Navbar.Brand className="text-light mx-0">
-            <Link to="/" style={{ textDecoration: "none", color: "white" }}>
+            <Link
+              to="/"
+              style={{ textDecoration: "none", color: "white" }}
+              onClick={() => {
+                setCategory("전체글");
+              }}
+            >
               MBT(m)I
             </Link>
           </Navbar.Brand>
@@ -211,37 +298,49 @@ function App() {
                 </Dropdown.Toggle>
 
                 <Dropdown.Menu align="end" variant="light">
-                  <Dropdown.Item
-                    as={Link}
-                    to={
-                      nickname != null
-                        ? // ? `${nickname}/myprofile`
-                          `${nickname}`
-                        : `/user?uid=${uid}`
-                    }
-                    style={{
-                      display: "flex",
-                    }}
-                  >
-                    <FaUserCircle size="44" color="#a0aec0"></FaUserCircle>
+                  {nickname == "" ? (
                     <div
                       style={{
-                        fontSize: "16px",
+                        height: "30px",
+                        marginBottom: "8px",
                         display: "flex",
-                        margin: "0 15px",
-                        flexDirection: "column",
+                        justifyContent: "center",
                       }}
                     >
-                      <span>{nickname}</span>
-                      {nickname != null ? (
-                        <span style={{ color: "#777777" }}>프로필 보기</span>
-                      ) : (
-                        <span style={{ color: "#777777" }}>
-                          프로필 설정하기
-                        </span>
-                      )}
+                      <ReactLoading
+                        type="spin"
+                        color="#0d6efd"
+                        width="24px"
+                      ></ReactLoading>
                     </div>
-                  </Dropdown.Item>
+                  ) : (
+                    <Dropdown.Item
+                      as={Link}
+                      to={nickname != null ? `${nickname}` : `/user?uid=${uid}`}
+                      style={{
+                        display: "flex",
+                      }}
+                    >
+                      <FaUserCircle size="44" color="#a0aec0"></FaUserCircle>
+                      <div
+                        style={{
+                          fontSize: "16px",
+                          display: "flex",
+                          margin: "0 15px",
+                          flexDirection: "column",
+                        }}
+                      >
+                        <span>{nickname != null && nickname}</span>
+                        {nickname != null ? (
+                          <span style={{ color: "#777777" }}>프로필 보기</span>
+                        ) : (
+                          <span style={{ color: "#777777" }}>
+                            프로필 설정하기
+                          </span>
+                        )}
+                      </div>
+                    </Dropdown.Item>
+                  )}
 
                   <Dropdown.Item
                     onClick={() => {
@@ -279,84 +378,122 @@ function App() {
           </div>
         </Container>
       </Navbar>
-      <div className="board">
-        <Route exact path="/">
-          {create && (
-            <Button
-              variant="dark"
-              size="sm"
-              className="rounded-circle"
-              style={{
-                bottom: "15px",
-                marginRight: "15px",
-                width: "50px",
-                height: "50px",
-                position: "fixed",
-                zIndex: "10",
-                lineHeight: "18px",
-              }}
-              onClick={() => {
-                history.push("/post");
-              }}
-            >
-              <BsPencilSquare size="20"></BsPencilSquare>
-            </Button>
-          )}
-
-          {post.map((a, i) => (
-            <CreateList
-              // key={i}
-              key={a.data.docId}
-              // post={post}
-              title={a.data.title}
-              content={a.data.content}
-              uid={a.data.uid}
-              docId={a.data.docId}
-            ></CreateList>
-          ))}
-          {isLoading && (
-            <div
-              style={{
-                width: "100%",
-                height: "100px",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <ReactLoading
-                type="spinningBubbles"
-                color="#0d6efd"
-                width="36px"
-              ></ReactLoading>
+      {post.length == 0 ? (
+        <div
+          style={{
+            marginTop: "80px",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <ReactLoading type="spin" color="#0d6efd" width="32px"></ReactLoading>
+        </div>
+      ) : (
+        <div className="board">
+          <Route exact path="/">
+            <div className="sort">
+              <Col sm="3" className="me-1">
+                <Form.Select
+                  value={category}
+                  size="sm"
+                  aria-label="Default select example"
+                  onChange={(e) => {
+                    setCategory(e.target.value);
+                  }}
+                >
+                  {mbti.map((a, i) => (
+                    <option value={a} key={i}>
+                      {a}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Col>
+              <Col sm="2">
+                <Form.Select size="sm" aria-label="Default select example">
+                  <option>최신순</option>
+                  <option>추천순</option>
+                </Form.Select>
+              </Col>
             </div>
-          )}
+            {create && (
+              <Button
+                variant="dark"
+                size="sm"
+                className="rounded-circle"
+                style={{
+                  bottom: "15px",
+                  marginRight: "15px",
+                  width: "50px",
+                  height: "50px",
+                  position: "fixed",
+                  zIndex: "10",
+                  lineHeight: "18px",
+                }}
+                onClick={() => {
+                  history.push("/post");
+                }}
+              >
+                <BsPencilSquare size="20"></BsPencilSquare>
+              </Button>
+            )}
 
-          <div ref={setTarget}></div>
-        </Route>
-        <Route path="/post">
-          <Post></Post>
-        </Route>
-        <Route path="/edit">
-          <Edit></Edit>
-        </Route>
+            {post.map((a, i) => (
+              <CreateList
+                // key={i}
+                key={a.data.docId}
+                // post={post}
+                category={a.data.category}
+                title={a.data.title}
+                content={a.data.content}
+                uid={a.data.uid}
+                docId={a.data.docId}
+              ></CreateList>
+            ))}
+            {isLoading && (
+              <div
+                style={{
+                  width: "100%",
+                  height: "100px",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <ReactLoading
+                  type="spin"
+                  color="#0d6efd"
+                  width="36px"
+                ></ReactLoading>
+              </div>
+            )}
 
-        <Route path="/search">
-          <Search create></Search>
-        </Route>
-        <Route path="/user">
-          <UserInfo></UserInfo>
-        </Route>
-        <Route path={`/${nickname}/`}>
-          <Profile></Profile>
-        </Route>
-        <Route path="/comments">
-          <Comments></Comments>
-        </Route>
-        {/* <Route path="*">
+            <div ref={setTarget}></div>
+          </Route>
+          <Route path="/post">
+            <Post></Post>
+          </Route>
+          <Route path="/edit">
+            <Edit></Edit>
+          </Route>
+
+          <Route path="/search">
+            <Search create={create}></Search>
+          </Route>
+          <Route path="/user">
+            <UserInfo></UserInfo>
+          </Route>
+          <Route path={`/${nickname}/`}>
+            <Profile></Profile>
+          </Route>
+          <Route path="/comments">
+            <Comments></Comments>
+          </Route>
+
+          {/* <Route path="*">
           <div>페이지를 찾을 수 없습니다.(수정)</div>
         </Route> */}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

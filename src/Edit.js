@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Button } from "react-bootstrap";
+import { Button, Col, Form } from "react-bootstrap";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { db, storage } from "./index.js";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { Editor } from "@tinymce/tinymce-react";
+import ReactLoading from "react-loading";
 
 export default function Edit() {
   const uid = window.localStorage.getItem("uid");
@@ -15,7 +16,30 @@ export default function Edit() {
   const [text, setText] = useState("");
   const [userId, setUserId] = useState("");
   const [editBtn, setEditBtn] = useState(false);
+  const [category, setCategory] = useState();
   const editorRef = useRef(null);
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const mbti = [
+    "카테고리",
+    "ISTJ",
+    "ISFJ",
+    "ISTP",
+    "ISFP",
+    "INTJ",
+    "INFJ",
+    "INTP",
+    "INFP",
+    "ESTJ",
+    "ESFJ",
+    "ESTP",
+    "ESFP",
+    "ENTJ",
+    "ENFJ",
+    "ENTP",
+    "ENFP",
+  ];
 
   const urlSearch = new URLSearchParams(window.location.search);
 
@@ -40,50 +64,78 @@ export default function Edit() {
         setTitle(result.data().title);
         setText(result.data().content);
         setUserId(result.data().uid);
+        setCategory(result.data().category);
       });
   }, []);
 
   return (
     <>
       <div className="editor">
-        {editBtn && (
-          <Button
-            className="rounded-pill"
-            variant="outline-dark"
-            size="sm"
-            onClick={() => {
-              if (window.confirm("저장하시겠습니까?")) {
-                title.length == 0
-                  ? alert("제목을 입력하세요.")
-                  : text.length == 0
-                  ? alert("내용을 입력하세요.")
-                  : db
-                      .collection("post")
-                      .doc(urlSearch.get("docId"))
-                      .update({
-                        title: title,
-                        content: text,
-                      })
-                      .then(() => {
-                        history.push(
-                          `/comments?docId=${urlSearch.get("docId")}`
-                        );
-                      });
+        <div
+          style={{
+            marginTop: "10px",
+            display: "flex",
+            justifyContent: "space-between",
+          }}
+        >
+          <Col sm="3">
+            <Form.Select
+              size="sm"
+              aria-label="Default select example"
+              value={category}
+              onChange={(e) => {
+                setCategory(e.target.value);
+              }}
+            >
+              {mbti.map((a, i) => (
+                <option value={a} key={i}>
+                  {a}
+                </option>
+              ))}
+            </Form.Select>
+          </Col>
 
-                db.collection("user-info")
-                  .doc(uid)
-                  .collection("posts")
-                  .doc(urlSearch.get("docId"))
-                  .update({
-                    title: title,
-                  });
-              }
-            }}
-          >
-            Edit
-          </Button>
-        )}
+          {editBtn && (
+            <Button
+              className="rounded-pill"
+              variant="outline-dark"
+              size="sm"
+              onClick={() => {
+                if (window.confirm("저장하시겠습니까?")) {
+                  (category == null) | (category == "카테고리")
+                    ? alert("카테고리를 선택하세요.")
+                    : title.length == 0
+                    ? alert("제목을 입력하세요.")
+                    : text.length == 0
+                    ? alert("내용을 입력하세요.")
+                    : db
+                        .collection("post")
+                        .doc(urlSearch.get("docId"))
+                        .update({
+                          category: category,
+                          title: title,
+                          content: text,
+                        })
+                        .then(() => {
+                          history.push(
+                            `/comments?docId=${urlSearch.get("docId")}`
+                          );
+                        });
 
+                  db.collection("user-info")
+                    .doc(uid)
+                    .collection("posts")
+                    .doc(urlSearch.get("docId"))
+                    .update({
+                      title: title,
+                    });
+                }
+              }}
+            >
+              Edit
+            </Button>
+          )}
+        </div>
         <input
           placeholder="Title"
           value={title}
@@ -165,6 +217,7 @@ export default function Edit() {
                         upload.snapshot.ref.getDownloadURL().then((url) => {
                           console.log(url);
                           cb(url);
+                          setIsLoading(false);
                         });
                       }
                     );
@@ -178,6 +231,11 @@ export default function Edit() {
           }}
         />
       </div>
+      {isLoading && (
+        <div className="upload">
+          <ReactLoading type="spin" color="#0d6efd" width="36px"></ReactLoading>
+        </div>
+      )}
     </>
   );
 }

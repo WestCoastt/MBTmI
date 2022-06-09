@@ -6,15 +6,20 @@ import {
 import { Col, Row, Button, Form, Nav } from "react-bootstrap";
 import { db } from "./index.js";
 import { Link, Route } from "react-router-dom";
+import { FaRegTrashAlt } from "react-icons/fa";
 import PostsTab from "./PostsTab.js";
 import CommentsTab from "./CommentsTab.js";
+import { getAuth, deleteUser } from "firebase/auth";
 
 export default function Profile() {
   const uid = window.localStorage.getItem("uid");
+  const nickname = window.localStorage.getItem("nickname");
+  const auth = getAuth();
+  const user = auth.currentUser;
   const history = useHistory();
   const [birthday, setBirthday] = useState();
   const location = useLocation();
-  const [nickname, setNickname] = useState();
+  // const [nickname, setNickname] = useState();
 
   const [male, setMale] = useState();
   const [female, setFemale] = useState();
@@ -23,15 +28,22 @@ export default function Profile() {
 
   const [mbti, setMbti] = useState();
 
-  db.collection("user-info")
-    .doc(uid)
-    .get()
-    .then((result) => {
-      setMbti(result.data().MBTI);
-      setNickname(result.data().nickname);
-      setBirthday(result.data().birthday);
-      setGender(result.data().gender);
-    });
+  if (uid != null) {
+    db.collection("user-info")
+      .doc(uid)
+      .get()
+      .then((result) => {
+        // setNickname(result.data().nickname);
+        setMbti(result.data().MBTI);
+        setBirthday(result.data().birthday);
+        setGender(result.data().gender);
+      })
+      .catch(() => {
+        setMbti();
+        setBirthday();
+        setGender();
+      });
+  }
 
   useEffect(() => {
     if (gender == "남") {
@@ -159,17 +171,65 @@ export default function Profile() {
               </Form.Group>
             </Form.Group>
           </fieldset>
-          <Button
-            className="rounded-pill float-end mt-5 me-2"
-            variant="outline-dark"
-            type="submit"
-            onClick={() => {
-              history.push("/user?uid=" + uid);
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
             }}
           >
-            수정
-          </Button>
+            <Button
+              className="rounded-pill mt-5 mb-5 me-2"
+              variant="outline-dark"
+              type="submit"
+              onClick={() => {
+                history.push("/user?uid=" + uid);
+              }}
+            >
+              수정
+            </Button>
+          </div>
         </Form>
+        <div className="account">
+          <button
+            className="delete-account"
+            variant="outline-danger"
+            onClick={() => {
+              if (window.confirm("계정을 삭제하시겠습니까?")) {
+                const posts = db.collection("post").where("uid", "==", uid);
+                const comments = db
+                  .collectionGroup("comment")
+                  .where("uid", "==", uid);
+
+                posts.get().then((snapshot) => {
+                  snapshot.docs.forEach((doc) => {
+                    doc.ref.delete();
+                  });
+                });
+                comments.get().then((snapshot) => {
+                  snapshot.docs.forEach((doc) => {
+                    doc.ref.delete();
+                  });
+                });
+
+                db.collection("user-info")
+                  .doc(uid)
+                  .delete();
+
+                deleteUser(user)
+                  .then(() => {
+                    history.push("/");
+                  })
+                  .catch((error) => {});
+              }
+            }}
+          >
+            <FaRegTrashAlt
+              size="17"
+              style={{ marginRight: "4px" }}
+            ></FaRegTrashAlt>
+            계정삭제
+          </button>
+        </div>
       </Route>
 
       <Route path={`/${nickname}/comments`}>
