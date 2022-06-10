@@ -392,6 +392,8 @@ function App() {
         <div className="board">
           <Route exact path="/">
             <div className="sort">
+              {/* <Link className="best">인기글</Link> */}
+
               <Col sm="3" className="me-1">
                 <Form.Select
                   value={category}

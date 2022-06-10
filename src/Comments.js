@@ -8,12 +8,12 @@ import {
   signInWithPopup,
   onAuthStateChanged,
 } from "firebase/auth";
-import { Timestamp } from "firebase/firestore";
+import { arrayUnion, arrayRemove, Timestamp } from "firebase/firestore";
 import parse from "html-react-parser";
 import { Editor } from "@tinymce/tinymce-react";
-import { FiHeart, FiMoreHorizontal } from "react-icons/fi";
+import { FiHeart, FiMoreHorizontal, FiShare2 } from "react-icons/fi";
 import { FaRegComment, FaUserCircle } from "react-icons/fa";
-import { useHistory } from "react-router-dom";
+import { useHistory, Link } from "react-router-dom";
 
 export default function Comments() {
   const uid = window.localStorage.getItem("uid");
@@ -31,10 +31,20 @@ export default function Comments() {
   const [comment, setComment] = useState([]);
   const [nickname, setNickname] = useState("");
   const [noInfo, setNoInfo] = useState();
+  const [like, setLike] = useState(false);
+  const [cnt, setCnt] = useState();
+  const docId = urlSearch.get("docId");
+
+  // db.collection("post")
+  //   .doc(docId)
+  //   .get()
+  //   .then((doc) => {
+  //     setCnt(doc.data().likes);
+  //   })
 
   useEffect(() => {
     db.collection("post")
-      .doc(urlSearch.get("docId"))
+      .doc(docId)
       .collection("comment")
       .orderBy("timeStamp")
       .onSnapshot((snapshot) => {
@@ -47,12 +57,13 @@ export default function Comments() {
 
   useEffect(() => {
     db.collection("post")
-      .doc(urlSearch.get("docId"))
+      .doc(docId)
       .get()
       .then((result) => {
         setTitle(result.data().title);
         setContent(result.data().content);
         setUserId(result.data().uid);
+        setCnt(result.data().likes);
       })
       .catch(() => {
         window.alert("삭제되었거나 존재하지 않는 게시물입니다.");
@@ -61,6 +72,16 @@ export default function Comments() {
   }, []);
 
   if (user != null) {
+    db.collection("post")
+      .where("likedUser", "array-contains", uid)
+      .get()
+      .then((result) => {
+        result.forEach((a) => {
+          if (a.data().docId == docId) {
+            setLike(true);
+          }
+        });
+      });
     db.collection("user-info")
       .doc(uid)
       .get()
@@ -118,7 +139,7 @@ export default function Comments() {
               >
                 <Dropdown.Item
                   onClick={() => {
-                    history.push(`/edit?docId=${urlSearch.get("docId")}`);
+                    history.push(`/edit?docId=${docId}`);
                   }}
                 >
                   Edit
@@ -127,12 +148,12 @@ export default function Comments() {
                   onClick={() => {
                     if (window.confirm("삭제하시겠습니까?")) {
                       db.collection("post")
-                        .doc(urlSearch.get("docId"))
+                        .doc(docId)
                         .delete();
                       db.collection("user-info")
                         .doc(uid)
                         .collection("posts")
-                        .doc(urlSearch.get("docId"))
+                        .doc(docId)
                         .delete()
                         .then(() => {
                           history.push("/");
@@ -149,7 +170,162 @@ export default function Comments() {
         <Card.Body>
           <Card.Text>{parse(content)}</Card.Text>
         </Card.Body>
-        <Card.Footer></Card.Footer>
+        <Card.Footer className="text-muted d-flex justify-content-evenly px-2 py-1">
+          <div
+            className="footer"
+            style={{
+              width: "90px",
+              display: "flex",
+              cursor: "pointer",
+              height: "36px",
+              margin: "5px 0",
+              borderRadius: "3px",
+            }}
+            onClick={() => {
+              {
+                user != null
+                  ? noInfo == false
+                    ? like == false
+                      ? db
+                          .collection("post")
+                          .doc(docId)
+                          .update({
+                            likes: cnt + 1,
+                            likedUser: arrayUnion(uid),
+                          }) &&
+                        db
+                          .collection("user-info")
+                          .doc(uid)
+                          .collection("likes")
+                          .doc(docId)
+                          .set({
+                            docId: docId,
+                            title: title,
+                            timeStamp: Timestamp.now(),
+                          })
+                      : db
+                          .collection("post")
+                          .doc(docId)
+                          .update({
+                            likes: cnt - 1,
+                            likedUser: arrayRemove(uid),
+                          }) &&
+                        db
+                          .collection("user-info")
+                          .doc(uid)
+                          .collection("likes")
+                          .doc(docId)
+                          .delete() &&
+                        setLike(false)
+                    : history.push("/user?uid=" + user.uid)
+                  : signInWithPopup(auth, provider)
+                      .then()
+                      .catch(() => {
+                        console.log("로그인필요");
+                      });
+              }
+            }}
+          >
+            <div
+              style={{
+                width: "100%",
+                margin: "auto",
+                display: "flex",
+                justifyContent: "space-evenly",
+              }}
+            >
+              <FiHeart
+                size="22"
+                color="#FF6C85"
+                fill={like == true ? "#FF6C85" : "none"}
+              ></FiHeart>
+              <span
+                style={{
+                  maxWidth: "48px",
+                  lineHeight: "20px",
+                  color: "#FF6C85",
+                  textAlign: "center",
+                }}
+              >
+                {cnt}
+              </span>
+            </div>
+          </div>
+          <div
+            style={{
+              width: "90px",
+              display: "flex",
+              cursor: "default",
+              height: "36px",
+              margin: "5px 0",
+              borderRadius: "3px",
+            }}
+          >
+            <div
+              style={{
+                width: "100%",
+                margin: "auto",
+                display: "flex",
+                justifyContent: "space-evenly",
+              }}
+            >
+              <FaRegComment size="22" color="#777777"></FaRegComment>
+              <span
+                style={{
+                  maxWidth: "48px",
+                  lineHeight: "20px",
+                  color: "#777777",
+                  textAlign: "center",
+                }}
+              >
+                {comment.length}
+              </span>
+            </div>
+          </div>
+
+          <div
+            className="footer"
+            style={{
+              width: "66px",
+              display: "flex",
+              cursor: "pointer",
+              height: "36px",
+              margin: "5px 0",
+              borderRadius: "3px",
+            }}
+            onClick={() => {
+              if (navigator.share) {
+                navigator
+                  .share({
+                    title: `${title}`,
+                    url: `https://mbtmi-96d3c.firebaseapp.com/comments?docId=${urlSearch.get(
+                      "docId"
+                    )}`,
+                  })
+                  .then(() => {
+                    console.log("성공");
+                  })
+                  .catch((e) => {
+                    console.log("실패");
+                  });
+              } else {
+                alert("공유하기가 지원되지 않는 환경입니다.");
+              }
+            }}
+          >
+            <div
+              style={{
+                width: "100%",
+                margin: "auto",
+                display: "flex",
+                justifyContent: "space-evenly",
+              }}
+            >
+              <FiShare2 size="21" color="#777777"></FiShare2>
+            </div>
+          </div>
+        </Card.Footer>
+        {/* <Card.Footer></Card.Footer> */}
       </Card>
 
       <Card
@@ -216,7 +392,7 @@ export default function Comments() {
                 onClick={() => {
                   const newDoc = db
                     .collection("post")
-                    .doc(urlSearch.get("docId"))
+                    .doc(docId)
                     .collection("comment")
                     .doc();
                   {
@@ -236,7 +412,7 @@ export default function Comments() {
                       .set({
                         comment: text,
                         commentId: newDoc.id,
-                        docId: urlSearch.get("docId"),
+                        docId: docId,
                         timeStamp: Timestamp.now(),
                       })
                       .then(() => {
@@ -317,7 +493,7 @@ export default function Comments() {
                       onClick={() => {
                         if (window.confirm("댓글을 삭제하시겠습니까?")) {
                           db.collection("post")
-                            .doc(urlSearch.get("docId"))
+                            .doc(docId)
                             .collection("comment")
                             .doc(a.data.commentId)
                             .delete();
@@ -353,153 +529,4 @@ export default function Comments() {
       ))}
     </>
   );
-}
-
-// <Card.Footer key={i} style={{ fontSize: "16px" }}>
-//       <div
-//         style={{
-//           width: "100%",
-//           margin: "10px 0",
-//           lineHeight: "34px",
-//           display: "flex",
-//           justifyContent: "space-between",
-//           background: "none",
-//         }}
-//       >
-//         {a.data.nickname}
-
-//         {user != null ? (
-//           user.uid == a.data.uid ? (
-//             <Dropdown>
-//               <Dropdown.Toggle
-//                 id="dropdown-basic"
-//                 size="sm"
-//                 variant="light"
-//                 style={{ lineHeight: "20px" }}
-//                 className="shadow-none rounded-pill px-1 py-1"
-//               >
-//                 <FiMoreHorizontal size="23"></FiMoreHorizontal>
-//               </Dropdown.Toggle>
-
-//               <Dropdown.Menu
-//                 align="end"
-//                 variant="dark"
-//                 style={{ minWidth: "120px", fontSize: "18px" }}
-//               >
-//                 <Dropdown.Item onClick={() => {}}>Edit</Dropdown.Item>
-//                 <Dropdown.Item
-//                   onClick={() => {
-//                     db.collection("post")
-//                       .doc(urlSearch.get("docId"))
-//                       .collection("comment")
-//                       .doc(a.data.commentId)
-//                       .delete();
-//                   }}
-//                 >
-//                   Delete
-//                 </Dropdown.Item>
-//               </Dropdown.Menu>
-//             </Dropdown>
-//           ) : null
-//         ) : null}
-//       </div>
-//       {parse(a.data.comment)}
-//       <FiHeart size="17" color="#FF6C85"></FiHeart>
-//       <FaRegComment size="17" color="#777777"></FaRegComment>
-//     </Card.Footer>
-
-// 댓글 카드 footer 변경전
-{
-  /* <Card.Footer className="d-flex flex-column align-items-end px-0">
-          <Editor
-            apiKey={tinymcekey}
-            onInit={(evt, editor) => (editorRef.current = editor)}
-            outputFormat="text"
-            onEditorChange={(newText) => setText(newText)}
-            init={{
-              height: 180,
-              width: "100%",
-              language: "ko_KR",
-              menubar: false,
-              branding: false,
-              statusbar: false,
-              file_picker_types: "file image media",
-              plugins: ["image", "link", "emoticons", "autoresize"],
-              toolbar: "| emoticons image link |",
-              autoresize_on_init: false,
-              images_upload_url: "postAcceptor.php",
-              images_upload_handler: function(blobInfo, success, failure) {
-              },
-              content_style:
-                "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
-            }}
-          ></Editor>
-          <div
-            style={{
-              width: "100%",
-              marginTop: "10px",
-              padding: "0 20px",
-              display: "flex",
-              justifyContent: "space-between",
-              background: "none",
-            }}
-          >
-            <span style={{ lineHeight: "42px", fontSize: "16px" }}>
-              댓글 {comment.length}
-            </span>
-
-            {user != null ? (
-              <Button
-                className="rounded-pill"
-                variant="outline-dark"
-                size="sm"
-                onClick={() => {
-                  const newDoc = db
-                    .collection("post")
-                    .doc(urlSearch.get("docId"))
-                    .collection("comment")
-                    .doc();
-                  {
-                    noInfo == true
-                      ? history.push("/user?uid=" + user.uid)
-                      : newDoc.set({
-                          uid: uid,
-                          commentId: newDoc.id,
-                          nickname: nickname,
-                          comment: text,
-                          timeStamp: Timestamp.now(),
-                        });
-                    db.collection("user-info")
-                      .doc(uid)
-                      .collection("comments")
-                      .doc(newDoc.id)
-                      .set({
-                        comment: text,
-                        commentId: newDoc.id,
-                        docId: urlSearch.get("docId"),
-                        timeStamp: Timestamp.now(),
-                      });
-                  }
-                }}
-              >
-                Comment
-              </Button>
-            ) : (
-              <Button
-                className="rounded-pill mx-1"
-                variant="outline-dark"
-                size="sm"
-                onClick={() => {
-                  signInWithPopup(auth, provider)
-                    .then()
-                    .catch(() => {
-                      console.log("로그인필요");
-                    });
-                }}
-              >
-                로그인
-              </Button>
-            )}
-          </div>
-        </Card.Footer> */
 }

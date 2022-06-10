@@ -9,6 +9,7 @@ import { Link, Route } from "react-router-dom";
 import { FaRegTrashAlt } from "react-icons/fa";
 import PostsTab from "./PostsTab.js";
 import CommentsTab from "./CommentsTab.js";
+import LikesTab from "./LikesTab.js";
 import { getAuth, deleteUser } from "firebase/auth";
 
 export default function Profile() {
@@ -89,6 +90,16 @@ export default function Profile() {
             className="px-1 mx-1"
           >
             Comments
+          </Nav.Link>
+        </Nav.Item>
+        <Nav.Item>
+          <Nav.Link
+            as={Link}
+            to={`/${nickname}/likes`}
+            eventKey={`/${nickname}/likes`}
+            className="px-1 mx-1"
+          >
+            Likes
           </Nav.Link>
         </Nav.Item>
       </Nav>
@@ -238,6 +249,9 @@ export default function Profile() {
 
       <Route path={`/${nickname}/posts`}>
         <PostsTab></PostsTab>
+      </Route>
+      <Route path={`/${nickname}/likes`}>
+        <LikesTab></LikesTab>
       </Route>
     </div>
   );

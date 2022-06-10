@@ -12,7 +12,7 @@ import {
   GoogleAuthProvider,
   onAuthStateChanged,
 } from "firebase/auth";
-import { arrayUnion, arrayRemove } from "firebase/firestore";
+import { arrayUnion, arrayRemove, Timestamp } from "firebase/firestore";
 import { FiHeart, FiMoreHorizontal, FiShare2, FiShare } from "react-icons/fi";
 import { FaRegComment } from "react-icons/fa";
 
@@ -159,6 +159,7 @@ export default function CreateList(props) {
               borderRadius: "3px",
             }}
             onClick={() => {
+              // const newDoc = db.collection("user-info").doc();
               {
                 user != null
                   ? noInfo == false
@@ -169,6 +170,16 @@ export default function CreateList(props) {
                           .update({
                             likes: cnt + 1,
                             likedUser: arrayUnion(uid),
+                          }) &&
+                        db
+                          .collection("user-info")
+                          .doc(uid)
+                          .collection("likes")
+                          .doc(props.docId)
+                          .set({
+                            docId: props.docId,
+                            title: props.title,
+                            timeStamp: Timestamp.now(),
                           })
                       : db
                           .collection("post")
@@ -176,7 +187,14 @@ export default function CreateList(props) {
                           .update({
                             likes: cnt - 1,
                             likedUser: arrayRemove(uid),
-                          }) && setLike(false)
+                          }) &&
+                        db
+                          .collection("user-info")
+                          .doc(uid)
+                          .collection("likes")
+                          .doc(props.docId)
+                          .delete() &&
+                        setLike(false)
                     : history.push("/user?uid=" + user.uid)
                   : signInWithPopup(auth, provider)
                       .then()
@@ -212,7 +230,7 @@ export default function CreateList(props) {
               </span>
             </div>
           </div>
-          <div
+          {/* <div
             className="footer"
             style={{
               width: "90px",
@@ -246,7 +264,30 @@ export default function CreateList(props) {
                 {comment.length}
               </span>
             </div>
-          </div>
+          </div> */}
+
+          <Link className="footer" to={`/comments?docId=${props.docId}`}>
+            <div
+              style={{
+                width: "100%",
+                margin: "auto",
+                display: "flex",
+                justifyContent: "space-evenly",
+              }}
+            >
+              <FaRegComment size="22" color="#777777"></FaRegComment>
+              <span
+                style={{
+                  maxWidth: "48px",
+                  lineHeight: "20px",
+                  color: "#777777",
+                  textAlign: "center",
+                }}
+              >
+                {comment.length}
+              </span>
+            </div>
+          </Link>
 
           <div
             className="footer"

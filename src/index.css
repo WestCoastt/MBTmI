@@ -40,8 +40,8 @@ code {
 .sort {
   width: 100%;
   display: flex;
-  /* justify-content: space-between; */
   justify-content: flex-end;
+  /* justify-content: space-between; */
 }
 
 /* iframe,
@@ -184,6 +184,14 @@ input {
   font-size: 19px;
 }
 
+.footer {
+  width: 90px;
+  display: flex;
+  text-decoration: none;
+  height: 36px;
+  margin: 5px 0;
+  border-radius: 3px;
+}
 /* .footer:focus, */
 .footer:active {
   background-color: rgba(190, 190, 190, 0.3);
