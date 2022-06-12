@@ -61,6 +61,36 @@ video {
   max-height: 100%;
 }
 
+.masking {
+  -webkit-mask-image: linear-gradient(180deg, #000 75%, transparent);
+}
+
+.read {
+  width: 100%;
+  display: flex;
+  position: absolute;
+  z-index: 99;
+  bottom: 74px;
+  right: 1px;
+}
+
+.read-more {
+  width: 72px;
+  height: 32px;
+  font-size: 16px;
+  text-align: center;
+  line-height: 32px;
+  margin: auto;
+  text-decoration: none;
+  color: #ffffff;
+  background: #212529;
+  border-radius: 8px;
+}
+
+.read-more:hover {
+  color: #ffffff;
+}
+
 .editor {
   width: 100%;
   max-width: 768px;
@@ -314,6 +344,13 @@ input {
   }
   .nav-link {
     font-size: 18px;
+  }
+
+  .read-more {
+    width: 64px;
+    height: 28px;
+    font-size: 14px;
+    line-height: 28px;
   }
 
   .list-group-item {

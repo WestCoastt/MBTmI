@@ -35,12 +35,13 @@ export default function Comments() {
   const [cnt, setCnt] = useState();
   const docId = urlSearch.get("docId");
 
-  // db.collection("post")
-  //   .doc(docId)
-  //   .get()
-  //   .then((doc) => {
-  //     setCnt(doc.data().likes);
-  //   })
+  db.collection("post")
+    .doc(docId)
+    .get()
+    .then((doc) => {
+      setCnt(doc.data().likes);
+    })
+    .catch(() => {});
 
   useEffect(() => {
     db.collection("post")
@@ -63,7 +64,6 @@ export default function Comments() {
         setTitle(result.data().title);
         setContent(result.data().content);
         setUserId(result.data().uid);
-        setCnt(result.data().likes);
       })
       .catch(() => {
         window.alert("삭제되었거나 존재하지 않는 게시물입니다.");

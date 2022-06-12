@@ -1,5 +1,5 @@
 /* eslint no-restricted-globals: ["off"] */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card, Button, Dropdown } from "react-bootstrap";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { Link } from "react-router-dom";
@@ -77,6 +77,14 @@ export default function CreateList(props) {
       });
   }
 
+  const elementRef = useRef();
+  const [cliHeight, setCliHeight] = useState();
+  useEffect(() => {
+    if (elementRef.current.clientHeight >= 500) {
+      setCliHeight(true);
+    }
+  }, []);
+
   return (
     <div
       style={{
@@ -110,13 +118,7 @@ export default function CreateList(props) {
                 variant="dark"
                 style={{ minWidth: "160px" }}
               >
-                <Dropdown.Item
-                  as={Link}
-                  to={`/edit?docId=${props.docId}`}
-                  // onClick={() => {
-                  //   history.push(`/edit?docId=${props.docId}`);
-                  // }}
-                >
+                <Dropdown.Item as={Link} to={`/edit?docId=${props.docId}`}>
                   Edit
                 </Dropdown.Item>
                 <Dropdown.Item
@@ -145,7 +147,23 @@ export default function CreateList(props) {
           )}
         </Card.Header>
         <Card.Body>
-          <Card.Text>{parse(props.content)}</Card.Text>
+          <Card.Text
+            className={cliHeight && "masking"}
+            ref={elementRef}
+            style={{
+              maxHeight: "500px",
+              overflow: "hidden",
+            }}
+          >
+            {parse(props.content)}
+          </Card.Text>
+          {cliHeight && (
+            <div className="read">
+              <Link to={`/comments?docId=${props.docId}`} className="read-more">
+                더보기
+              </Link>
+            </div>
+          )}
         </Card.Body>
         <Card.Footer className="text-muted d-flex justify-content-evenly px-2 py-1">
           <div
@@ -159,7 +177,6 @@ export default function CreateList(props) {
               borderRadius: "3px",
             }}
             onClick={() => {
-              // const newDoc = db.collection("user-info").doc();
               {
                 user != null
                   ? noInfo == false
