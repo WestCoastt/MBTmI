@@ -464,9 +464,7 @@ export default function Comments() {
             >
               <div style={{ display: "flex" }}>
                 <FaUserCircle size="36" color="#a0aec0"></FaUserCircle>
-                <p style={{ margin: "0 10px", lineHeight: "32px" }}>
-                  {a.data.nickname}
-                </p>
+                <Link className="nickname">{a.data.nickname}</Link>
               </div>
 
               {user != null && uid == a.data.uid && (
@@ -522,8 +520,8 @@ export default function Comments() {
             >
               {parse(a.data.comment)}
             </div>
-            <FiHeart size="17" color="#FF6C85"></FiHeart>
-            <FaRegComment size="17" color="#777777"></FaRegComment>
+            {/* <FiHeart size="17" color="#FF6C85"></FiHeart>
+            <FaRegComment size="17" color="#777777"></FaRegComment> */}
           </Card.Body>
         </Card>
       ))}

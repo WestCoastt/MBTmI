@@ -16,30 +16,9 @@ export default function Edit() {
   const [text, setText] = useState("");
   const [userId, setUserId] = useState("");
   const [editBtn, setEditBtn] = useState(false);
-  const [category, setCategory] = useState();
   const editorRef = useRef(null);
 
   const [isLoading, setIsLoading] = useState(false);
-
-  const mbti = [
-    "카테고리",
-    "ISTJ",
-    "ISFJ",
-    "ISTP",
-    "ISFP",
-    "INTJ",
-    "INFJ",
-    "INTP",
-    "INFP",
-    "ESTJ",
-    "ESFJ",
-    "ESTP",
-    "ESFP",
-    "ENTJ",
-    "ENFJ",
-    "ENTP",
-    "ENFP",
-  ];
 
   const urlSearch = new URLSearchParams(window.location.search);
 
@@ -64,7 +43,6 @@ export default function Edit() {
         setTitle(result.data().title);
         setText(result.data().content);
         setUserId(result.data().uid);
-        setCategory(result.data().category);
       });
   }, []);
 
@@ -75,26 +53,9 @@ export default function Edit() {
           style={{
             marginTop: "10px",
             display: "flex",
-            justifyContent: "space-between",
+            justifyContent: "flex-end",
           }}
         >
-          <Col sm="3">
-            <Form.Select
-              size="sm"
-              aria-label="Default select example"
-              value={category}
-              onChange={(e) => {
-                setCategory(e.target.value);
-              }}
-            >
-              {mbti.map((a, i) => (
-                <option value={a} key={i}>
-                  {a}
-                </option>
-              ))}
-            </Form.Select>
-          </Col>
-
           {editBtn && (
             <Button
               className="rounded-pill"
@@ -102,9 +63,7 @@ export default function Edit() {
               size="sm"
               onClick={() => {
                 if (window.confirm("저장하시겠습니까?")) {
-                  (category == null) | (category == "카테고리")
-                    ? alert("카테고리를 선택하세요.")
-                    : title.length == 0
+                  title.length == 0
                     ? alert("제목을 입력하세요.")
                     : text.length == 0
                     ? alert("내용을 입력하세요.")
@@ -112,7 +71,6 @@ export default function Edit() {
                         .collection("post")
                         .doc(urlSearch.get("docId"))
                         .update({
-                          category: category,
                           title: title,
                           content: text,
                         })
@@ -120,15 +78,15 @@ export default function Edit() {
                           history.push(
                             `/comments?docId=${urlSearch.get("docId")}`
                           );
+                        }) &&
+                      db
+                        .collection("user-info")
+                        .doc(uid)
+                        .collection("posts")
+                        .doc(urlSearch.get("docId"))
+                        .update({
+                          title: title,
                         });
-
-                  db.collection("user-info")
-                    .doc(uid)
-                    .collection("posts")
-                    .doc(urlSearch.get("docId"))
-                    .update({
-                      title: title,
-                    });
                 }
               }}
             >

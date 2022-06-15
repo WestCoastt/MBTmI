@@ -246,7 +246,6 @@ export default function Profile() {
       <Route path={`/${nickname}/comments`}>
         <CommentsTab></CommentsTab>
       </Route>
-
       <Route path={`/${nickname}/posts`}>
         <PostsTab></PostsTab>
       </Route>

@@ -39,10 +39,15 @@ function Search(props) {
 
   const enterPress = (e) => {
     if (e.key == "Enter") {
-      e.preventDefault();
-      history.push("/search?q=" + search);
+      if (search.length >= 1) {
+        e.preventDefault();
+        history.push("/search?q=" + search);
 
-      findData();
+        findData();
+      } else {
+        e.preventDefault();
+        window.alert("검색어를 입력하세요.");
+      }
     }
   };
 

@@ -10,6 +10,7 @@ import ReactLoading from "react-loading";
 
 export default function Post() {
   const uid = window.localStorage.getItem("uid");
+  const nickname = window.localStorage.getItem("nickname");
   const auth = getAuth();
   const user = auth.currentUser;
   const history = useHistory();
@@ -19,29 +20,8 @@ export default function Post() {
   const [text, setText] = useState("");
   const editorRef = useRef(null);
   const [noInfo, setNoInfo] = useState();
-  const [category, setCategory] = useState();
 
   const [isLoading, setIsLoading] = useState(false);
-
-  const mbti = [
-    "카테고리",
-    "ISTJ",
-    "ISFJ",
-    "ISTP",
-    "ISFP",
-    "INTJ",
-    "INFJ",
-    "INTP",
-    "INFP",
-    "ESTJ",
-    "ESFJ",
-    "ESTP",
-    "ESFP",
-    "ENTJ",
-    "ENFJ",
-    "ENTP",
-    "ENFP",
-  ];
 
   if (user != null) {
     db.collection("user-info")
@@ -73,24 +53,9 @@ export default function Post() {
           style={{
             marginTop: "10px",
             display: "flex",
-            justifyContent: "space-between",
+            justifyContent: "flex-end",
           }}
         >
-          <Col sm="3">
-            <Form.Select
-              size="sm"
-              aria-label="Default select example"
-              onChange={(e) => {
-                setCategory(e.target.value);
-              }}
-            >
-              {mbti.map((a, i) => (
-                <option value={a} key={i}>
-                  {a}
-                </option>
-              ))}
-            </Form.Select>
-          </Col>
           {user != null && (
             <Button
               className="rounded-pill"
@@ -101,18 +66,16 @@ export default function Post() {
                 {
                   noInfo == true
                     ? history.push("/user?uid=" + user.uid)
-                    : (category == null) | (category == "카테고리")
-                    ? alert("카테고리를 선택하세요.")
                     : title.length == 0
                     ? alert("제목을 입력하세요.")
                     : text.length == 0
                     ? alert("내용을 입력하세요.")
                     : newDoc
                         .set({
-                          category: category,
                           title: title,
                           content: text,
                           uid: uid,
+                          nickname: nickname,
                           docId: newDoc.id,
                           likedUser: [],
                           likes: 0,

@@ -14,7 +14,7 @@ import {
 } from "firebase/auth";
 import { arrayUnion, arrayRemove, Timestamp } from "firebase/firestore";
 import { FiHeart, FiMoreHorizontal, FiShare2, FiShare } from "react-icons/fi";
-import { FaRegComment } from "react-icons/fa";
+import { FaRegComment, FaUserCircle } from "react-icons/fa";
 
 export default function CreateList(props) {
   const uid = window.localStorage.getItem("uid");
@@ -77,7 +77,7 @@ export default function CreateList(props) {
       });
   }
 
-  const elementRef = useRef();
+  const elementRef = useRef(null);
   const [cliHeight, setCliHeight] = useState();
   useEffect(() => {
     if (elementRef.current.clientHeight >= 500) {
@@ -99,52 +99,69 @@ export default function CreateList(props) {
           margin: "8px 0px",
         }}
       >
-        <Card.Header className="d-flex justify-content-between" as="h5">
-          {props.title}
+        {/* <Card.Header className="d-flex justify-content-between" as="h5"> */}
+        <Card.Header as="h5">
+          {/* {props.title} */}
 
-          {user != null && uid == props.uid && (
-            <Dropdown>
-              <Dropdown.Toggle
-                size="sm"
-                variant="light"
-                style={{ lineHeight: "20px" }}
-                className="more shadow-none rounded-pill px-1 py-1"
-              >
-                <FiMoreHorizontal size="23"></FiMoreHorizontal>
-              </Dropdown.Toggle>
+          <div
+            style={{
+              fontSize: "16px",
+              marginBottom: "10px",
+              display: "flex",
+              justifyContent: "space-between",
+            }}
+          >
+            <div style={{ display: "flex" }}>
+              <FaUserCircle size="36" color="#a0aec0"></FaUserCircle>
+              <Link className="nickname">{props.nickname}</Link>
+            </div>
 
-              <Dropdown.Menu
-                align="end"
-                variant="dark"
-                style={{ minWidth: "160px" }}
-              >
-                <Dropdown.Item as={Link} to={`/edit?docId=${props.docId}`}>
-                  Edit
-                </Dropdown.Item>
-                <Dropdown.Item
-                  onClick={() => {
-                    if (window.confirm("삭제하시겠습니까?")) {
-                      db.collection("post")
-                        .doc(props.docId)
-                        .delete();
-                      db.collection("user-info")
-                        .doc(uid)
-                        .collection("posts")
-                        .doc(props.docId)
-                        .delete()
-                        .then(() => {
-                          // location.reload();
-                          // map돌릴때 key값을 고유한 값(ex. docID)을 매기니까 리로드 필요 없어짐
-                          //key값을 index로 주면 delete할때 순서가 엉망이 됨
-                        });
-                    }
-                  }}
+            {user != null && uid == props.uid && (
+              <Dropdown>
+                <Dropdown.Toggle
+                  size="sm"
+                  variant="light"
+                  style={{ lineHeight: "20px" }}
+                  className="more shadow-none rounded-pill px-1 py-1"
                 >
-                  Delete
-                </Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
-          )}
+                  <FiMoreHorizontal size="23"></FiMoreHorizontal>
+                </Dropdown.Toggle>
+
+                <Dropdown.Menu
+                  align="end"
+                  variant="dark"
+                  style={{ minWidth: "160px" }}
+                >
+                  <Dropdown.Item as={Link} to={`/edit?docId=${props.docId}`}>
+                    Edit
+                  </Dropdown.Item>
+                  <Dropdown.Item
+                    onClick={() => {
+                      if (window.confirm("삭제하시겠습니까?")) {
+                        db.collection("post")
+                          .doc(props.docId)
+                          .delete();
+                        db.collection("user-info")
+                          .doc(uid)
+                          .collection("posts")
+                          .doc(props.docId)
+                          .delete()
+                          .then(() => {
+                            // location.reload();
+                            // map돌릴때 key값을 고유한 값(ex. docID)을 매기니까 리로드 필요 없어짐
+                            //key값을 index로 주면 delete할때 순서가 엉망이 됨
+                          });
+                      }
+                    }}
+                  >
+                    Delete
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
+            )}
+          </div>
+
+          {props.title}
         </Card.Header>
         <Card.Body>
           <Card.Text

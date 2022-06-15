@@ -1,13 +1,6 @@
 /* eslint no-restricted-globals: ["off"] */
-import React, { useState, useEffect } from "react";
-import {
-  Button,
-  Navbar,
-  Container,
-  Dropdown,
-  Form,
-  Col,
-} from "react-bootstrap";
+import React, { useState, useEffect, useRef } from "react";
+import { Button, Navbar, Container, Dropdown } from "react-bootstrap";
 import { Route, Link } from "react-router-dom";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import "./App.css";
@@ -45,28 +38,6 @@ function App() {
     setSignUP(send);
   };
 
-  const [category, setCategory] = useState("전체글");
-
-  const mbti = [
-    "전체글",
-    "ISTJ",
-    "ISFJ",
-    "ISTP",
-    "ISFP",
-    "INTJ",
-    "INFJ",
-    "INTP",
-    "INFP",
-    "ESTJ",
-    "ESFJ",
-    "ESTP",
-    "ESFP",
-    "ENTJ",
-    "ENFJ",
-    "ENTP",
-    "ENFP",
-  ];
-
   const [create, setCreate] = useState(false);
 
   const [lastVisible, setLastVisible] = useState(null);
@@ -84,93 +55,43 @@ function App() {
       });
   }, []);
 
-  useEffect(() => {
-    {
-      category == "전체글"
-        ? db
-            .collection("post")
-            .orderBy("timeStamp", "desc")
-            .limit(20)
-            .onSnapshot((snapshot) => {
-              const postArr = snapshot.docs.map((doc) => ({
-                data: doc.data(),
-              }));
-              setPost(postArr);
-              setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
-            })
-        : db
-            .collection("post")
-            .where("category", "==", category)
-            .orderBy("timeStamp", "desc")
-            .limit(10)
-            .onSnapshot((snapshot) => {
-              const postArr = snapshot.docs.map((doc) => ({
-                data: doc.data(),
-              }));
-              setPost(postArr);
-              setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
-            });
-    }
-  }, [category]);
-
   const [target, setTarget] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    console.log(post.length);
-    if (post.length % 10 == 0) {
-      console.log(post.length % 10 == 0);
-      const onIntersect = async ([entry], observer) => {
-        if (entry.isIntersecting && !isLoading) {
-          observer.unobserve(entry.target);
-          setIsLoading(true);
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          if (category == "전체글") {
-            await db
-              .collection("post")
-              .orderBy("timeStamp", "desc")
-              .startAfter(lastVisible)
-              .limit(10)
-              .onSnapshot((snapshot) => {
-                const addArr = snapshot.docs.map((doc) => ({
-                  data: doc.data(),
-                }));
-                // console.log([...post, ...addArr]);
-                setPost([...post, ...addArr]);
-                setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
-              });
-          } else if (category != "전체글" && post.length % 10 == 0) {
-            await db
-              .collection("post")
-              .orderBy("timeStamp", "desc")
-              .where("category", "==", category)
-              .startAfter(lastVisible)
-              .limit(1)
-              .onSnapshot((snapshot) => {
-                const addArr = snapshot.docs.map((doc) => ({
-                  data: doc.data(),
-                }));
-                setPost([...post, ...addArr]);
-                setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
-                // console.log(lastVisible);
-              });
-          }
-
-          setIsLoading(false);
-          observer.observe(entry.target);
-        }
-      };
-      let observer;
-      if (target) {
-        observer = new IntersectionObserver(onIntersect, {
-          threshold: 1,
-          rootMargin: "10px 0px",
+  const onIntersect = async ([entry], observer) => {
+    if (entry.isIntersecting && !isLoading) {
+      observer.unobserve(entry.target);
+      setIsLoading(true);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await db
+        .collection("post")
+        .orderBy("timeStamp", "desc")
+        .startAfter(lastVisible)
+        .limit(10)
+        .onSnapshot((snapshot) => {
+          const addArr = snapshot.docs.map((doc) => ({
+            data: doc.data(),
+          }));
+          // console.log([...post, ...addArr]);
+          setPost([...post, ...addArr]);
+          setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
         });
-        observer.observe(target);
-      }
-      return () => observer && observer.disconnect();
+      setIsLoading(false);
+      observer.observe(entry.target);
     }
-  }, [lastVisible]);
+  };
+
+  useEffect(() => {
+    let observer;
+    if (target) {
+      observer = new IntersectionObserver(onIntersect, {
+        threshold: 0.7,
+        rootMargin: "10px 0px",
+      });
+      observer.observe(target);
+    }
+    return () => observer && observer.disconnect();
+  }, [lastVisible, target]);
 
   onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -243,9 +164,9 @@ function App() {
             <Link
               to="/"
               style={{ textDecoration: "none", color: "white" }}
-              onClick={() => {
-                setCategory("전체글");
-              }}
+              // onClick={() => {
+              //   setCategory("전체글");
+              // }}
             >
               MBT(m)I
             </Link>
@@ -391,32 +312,6 @@ function App() {
       ) : (
         <div className="board">
           <Route exact path="/">
-            <div className="sort">
-              {/* <Link className="best">인기글</Link> */}
-
-              <Col sm="3" className="me-1">
-                <Form.Select
-                  value={category}
-                  size="sm"
-                  aria-label="Default select example"
-                  onChange={(e) => {
-                    setCategory(e.target.value);
-                  }}
-                >
-                  {mbti.map((a, i) => (
-                    <option value={a} key={i}>
-                      {a}
-                    </option>
-                  ))}
-                </Form.Select>
-              </Col>
-              <Col sm="2">
-                <Form.Select size="sm" aria-label="Default select example">
-                  <option>최신순</option>
-                  <option>추천순</option>
-                </Form.Select>
-              </Col>
-            </div>
             {create && (
               <Button
                 variant="dark"
@@ -449,6 +344,7 @@ function App() {
                 content={a.data.content}
                 uid={a.data.uid}
                 docId={a.data.docId}
+                nickname={a.data.nickname}
               ></CreateList>
             ))}
             {isLoading && (
@@ -484,9 +380,11 @@ function App() {
           <Route path="/user">
             <UserInfo></UserInfo>
           </Route>
-          <Route path={`/${nickname}/`}>
-            <Profile></Profile>
-          </Route>
+          {nickname && (
+            <Route path={`/${nickname}/`}>
+              <Profile></Profile>
+            </Route>
+          )}
           <Route path="/comments">
             <Comments></Comments>
           </Route>
