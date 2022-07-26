@@ -66,7 +66,7 @@ video {
 }
 
 .masking {
-  mask-image: linear-gradient(180deg, #000 75%, transparent);
+  -webkit-mask-image: linear-gradient(180deg, #000 75%, transparent);
 }
 
 .read {
@@ -125,7 +125,7 @@ video {
 .user {
   width: 100%;
   max-width: 768px;
-  min-height: 667px;
+  min-height: 600px;
   margin: auto;
   /* display: flex;
   flex-direction: column;
@@ -180,8 +180,17 @@ video {
   color: black;
 }
 
-.list-group-item p {
+.posts p {
   width: 480px;
+  margin: 0;
+  height: 40px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.likes p {
+  width: 720px;
   margin: 0;
   height: 40px;
   white-space: nowrap;
@@ -226,10 +235,10 @@ input {
   margin: 5px 0;
   border-radius: 3px;
 }
-/* .footer:focus, */
-.footer:active {
+
+/* .footer:hover {
   background-color: rgba(190, 190, 190, 0.3);
-}
+} */
 
 #comment:focus,
 #comment:active {
@@ -360,7 +369,20 @@ input {
   /* .list-group-item {
     font-size: 14px;
   } */
-  .list-group-item p {
+  /* .likes {
+    max-width: 50%;
+    margin: 0;
+    height: 40px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  } */
+
+  .likes p {
+    width: 320px;
+  }
+
+  .posts p {
     width: 200px;
   }
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ListGroup, Dropdown } from "react-bootstrap";
+import { Container, ListGroup, Dropdown, Pagination } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { db } from "./index.js";
 import parse from "html-react-parser";
@@ -9,29 +9,81 @@ export default function CommentsTab() {
   const uid = window.localStorage.getItem("uid");
 
   const [comments, setComments] = useState([]);
+  const [lastVisible, setLastVisible] = useState();
+  const [pages, setPages] = useState();
+  const [currentPage, setCurrentPage] = useState();
+
+  const commentList = db
+    .collection("user-info")
+    .doc(uid)
+    .collection("comments")
+    .orderBy("timeStamp");
 
   useEffect(() => {
-    db.collection("user-info")
-      .doc(uid)
-      .collection("comments")
-      .orderBy("timeStamp")
-      .onSnapshot((snapshot) => {
+    commentList.onSnapshot((snapshot) => {
+      const commentArr = snapshot.docs.map((doc) => ({
+        data: doc.data(),
+      }));
+      setComments(commentArr);
+    });
+    commentList.onSnapshot((snapshot) => {
+      setPages(Math.ceil(snapshot.docs.length / 10));
+      if (snapshot.docs.length != 0) {
+        setCurrentPage(1);
+      }
+    });
+  }, []);
+
+  function prevPage() {
+    if (currentPage > 2) {
+      commentList
+        .endBefore(lastVisible)
+        .limitToLast(10)
+        .onSnapshot((snapshot) => {
+          const prevArr = snapshot.docs.map((doc) => ({
+            data: doc.data(),
+          }));
+          setComments(prevArr);
+          setLastVisible(snapshot.docs[0]);
+        });
+    } else if (currentPage == 2) {
+      commentList.limit(10).onSnapshot((snapshot) => {
         const commentArr = snapshot.docs.map((doc) => ({
           data: doc.data(),
         }));
         setComments(commentArr);
+        setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
       });
-  }, []);
+    }
+  }
+
+  function nextPage() {
+    if (currentPage !== pages) {
+      commentList
+        .startAfter(lastVisible)
+        .limit(10)
+        .onSnapshot((snapshot) => {
+          const nextArr = snapshot.docs.map((doc) => ({
+            data: doc.data(),
+          }));
+          setComments(nextArr);
+          setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
+        });
+    }
+  }
 
   return (
     <div className="user">
-      <ListGroup variant="flush" style={{ marginTop: "10px" }}>
+      <ListGroup variant="flush" style={{ marginTop: "10px", height: "500px" }}>
         {comments.map((a, i) => (
           <ListGroup.Item key={a.data.commentId}>
             {/* <div style={{ display: "flex", justifyContent: "space-between" }}> */}
 
             <Link to={`/comments?docId=${a.data.docId}`} className="tab-items">
-              <span style={{ lineHeight: "36px", width: "70%" }}>
+              <span
+                className="posts"
+                style={{ lineHeight: "36px", width: "70%" }}
+              >
                 {parse(a.data.comment)}
               </span>
             </Link>
@@ -97,6 +149,29 @@ export default function CommentsTab() {
           </ListGroup.Item>
         ))}
       </ListGroup>
+      <Container className="d-flex justify-content-center mt-4">
+        <Pagination>
+          <Pagination.Prev
+            onClick={() => {
+              {
+                currentPage > 1 && setCurrentPage(currentPage - 1);
+              }
+              prevPage();
+            }}
+          />
+          <Pagination.Item disabled>
+            {currentPage & pages ? currentPage + " / " + pages : null}
+          </Pagination.Item>
+          <Pagination.Next
+            onClick={() => {
+              {
+                currentPage < pages && setCurrentPage(currentPage + 1);
+              }
+              nextPage();
+            }}
+          />
+        </Pagination>
+      </Container>
     </div>
   );
 }

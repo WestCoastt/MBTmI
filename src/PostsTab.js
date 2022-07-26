@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ListGroup, Dropdown } from "react-bootstrap";
+import { ListGroup, Dropdown, Pagination, Container } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { db } from "./index.js";
 import { FiMoreHorizontal } from "react-icons/fi";
@@ -8,29 +8,81 @@ export default function PostsTab() {
   const uid = window.localStorage.getItem("uid");
 
   const [posts, setPosts] = useState([]);
+  const [lastVisible, setLastVisible] = useState();
+  const [pages, setPages] = useState();
+  const [currentPage, setCurrentPage] = useState();
+
+  const postList = db
+    .collection("user-info")
+    .doc(uid)
+    .collection("posts")
+    .orderBy("timeStamp");
 
   useEffect(() => {
-    db.collection("user-info")
-      .doc(uid)
-      .collection("posts")
-      .orderBy("timeStamp")
-      .onSnapshot((snapshot) => {
+    postList.onSnapshot((snapshot) => {
+      const postArr = snapshot.docs.map((doc) => ({
+        data: doc.data(),
+      }));
+      setPosts(postArr);
+    });
+    postList.onSnapshot((snapshot) => {
+      setPages(Math.ceil(snapshot.docs.length / 10));
+      if (snapshot.docs.length != 0) {
+        setCurrentPage(1);
+      }
+    });
+  }, []);
+
+  function prevPage() {
+    if (currentPage > 2) {
+      postList
+        .endBefore(lastVisible)
+        .limitToLast(10)
+        .onSnapshot((snapshot) => {
+          const prevArr = snapshot.docs.map((doc) => ({
+            data: doc.data(),
+          }));
+          setPosts(prevArr);
+          setLastVisible(snapshot.docs[0]);
+        });
+    } else if (currentPage == 2) {
+      postList.limit(10).onSnapshot((snapshot) => {
         const postArr = snapshot.docs.map((doc) => ({
           data: doc.data(),
         }));
         setPosts(postArr);
+        setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
       });
-  }, []);
+    }
+  }
+
+  function nextPage() {
+    if (currentPage !== pages) {
+      postList
+        .startAfter(lastVisible)
+        .limit(10)
+        .onSnapshot((snapshot) => {
+          const nextArr = snapshot.docs.map((doc) => ({
+            data: doc.data(),
+          }));
+          setPosts(nextArr);
+          setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
+        });
+    }
+  }
 
   return (
     <div className="user">
-      <ListGroup variant="flush" style={{ marginTop: "10px" }}>
+      <ListGroup variant="flush" style={{ marginTop: "10px", height: "500px" }}>
         {posts.map((a, i) => (
           <ListGroup.Item key={a.data.docId}>
             {/* <div style={{ display: "flex", justifyContent: "space-between" }}> */}
 
             <Link to={`/comments?docId=${a.data.docId}`} className="tab-items">
-              <span style={{ lineHeight: "36px", width: "70%" }}>
+              <span
+                className="posts"
+                style={{ lineHeight: "36px", width: "70%" }}
+              >
                 <p>{a.data.title}</p>
               </span>
             </Link>
@@ -90,6 +142,29 @@ export default function PostsTab() {
           </ListGroup.Item>
         ))}
       </ListGroup>
+      <Container className="d-flex justify-content-center mt-4">
+        <Pagination>
+          <Pagination.Prev
+            onClick={() => {
+              {
+                currentPage > 1 && setCurrentPage(currentPage - 1);
+              }
+              prevPage();
+            }}
+          />
+          <Pagination.Item disabled>
+            {currentPage & pages ? currentPage + " / " + pages : null}
+          </Pagination.Item>
+          <Pagination.Next
+            onClick={() => {
+              {
+                currentPage < pages && setCurrentPage(currentPage + 1);
+              }
+              nextPage();
+            }}
+          />
+        </Pagination>
+      </Container>
     </div>
   );
 }

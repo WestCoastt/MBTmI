@@ -101,7 +101,7 @@ function Search(props) {
 
       {props.create && (
         <Button
-          variant="dark"
+          variant="primary"
           size="sm"
           className="rounded-circle"
           style={{
