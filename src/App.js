@@ -105,6 +105,7 @@ function App() {
         .then((result) => {
           setNickname(result.data().nickname);
           window.localStorage.setItem("nickname", result.data().nickname);
+          window.localStorage.setItem("MBTI", result.data().MBTI);
         })
         .catch(() => {
           setNickname(null);
@@ -311,6 +312,7 @@ function App() {
             </div>
           </Container>
         </Navbar>
+
         {post.length == 0 ? (
           <div
             style={{
@@ -361,6 +363,8 @@ function App() {
                   uid={a.data.uid}
                   docId={a.data.docId}
                   nickname={a.data.nickname}
+                  timestamp={a.data.timeStamp.seconds}
+                  mbti={a.data.mbti}
                 ></CreateList>
               ))}
               {isLoading && (

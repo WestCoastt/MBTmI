@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 
 export default function Register(props) {
@@ -101,5 +101,3 @@ export default function Register(props) {
     </div>
   );
 }
-
-// 유저인포페이지에서는 nav-bar 없애고,  react-beforeunload 로 뒤로가기, 페이지이동 막기

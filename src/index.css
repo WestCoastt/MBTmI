@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500&display=swap");
+
 * {
   box-sizing: border-box;
 }
@@ -7,9 +9,8 @@ body {
   /* margin: auto;
   width: 640px; */
   background: #e2e8f0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
+  font-family: "Noto Sans KR", sans-serif;
+
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -38,14 +39,56 @@ code {
 }
 
 .nickname {
-  margin: 0 10px;
-  line-height: 32px;
+  margin: 3px 2px 3px 10px;
+  line-height: 20px;
   text-decoration: none;
   color: initial;
 }
+
 .nickname:hover {
   text-decoration: underline;
   color: initial;
+}
+
+.badge {
+  /* height: 16px; */
+  width: 50px;
+  border-radius: 3px;
+  margin: 2px 0;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 16px;
+  color: white;
+  font-family: "Roboto";
+}
+
+.timestamp {
+  margin: 0 0 0 12px;
+  line-height: 36px;
+  /* line-height: 28px; */
+  font-size: 12px;
+  /* font-weight: 700; */
+  color: rgb(120, 124, 126);
+  text-decoration: none;
+}
+.timestamp:hover {
+  color: rgb(120, 124, 126);
+}
+
+.tooltip-inner {
+  max-width: 100%;
+  font-size: 14px;
+}
+
+.mbti {
+  width: 80px;
+  border-radius: 3px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
 }
 
 /* iframe,
@@ -177,7 +220,7 @@ video {
 
 .list-group-item a {
   text-decoration: none;
-  color: black;
+  color: #1f55de;
 }
 
 .posts p {

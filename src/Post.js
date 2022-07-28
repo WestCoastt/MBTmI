@@ -11,6 +11,7 @@ import ReactLoading from "react-loading";
 export default function Post() {
   const uid = window.localStorage.getItem("uid");
   const nickname = window.localStorage.getItem("nickname");
+  const mbti = window.localStorage.getItem("MBTI");
   const auth = getAuth();
   const user = auth.currentUser;
   const history = useHistory();
@@ -76,6 +77,7 @@ export default function Post() {
                           content: text,
                           uid: uid,
                           nickname: nickname,
+                          mbti: mbti,
                           docId: newDoc.id,
                           likedUser: [],
                           likes: 0,

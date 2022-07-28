@@ -160,7 +160,7 @@ export default function CommentsTab() {
             }}
           />
           <Pagination.Item disabled>
-            {currentPage & pages ? currentPage + " / " + pages : null}
+            {pages && currentPage + " / " + pages}
           </Pagination.Item>
           <Pagination.Next
             onClick={() => {
