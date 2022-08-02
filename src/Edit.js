@@ -18,6 +18,8 @@ export default function Edit() {
   const [editBtn, setEditBtn] = useState(false);
   const editorRef = useRef(null);
 
+  const [charLimit, setCharLimit] = useState();
+  const [titleLimit, setTitleLimit] = useState();
   const [isLoading, setIsLoading] = useState(false);
 
   const urlSearch = new URLSearchParams(window.location.search);
@@ -46,6 +48,25 @@ export default function Edit() {
       });
   }, []);
 
+  const handleUpdate = (value, editor) => {
+    const length = editor.getContent({ format: "text" }).length;
+
+    if (length > 20000) {
+      setCharLimit(true);
+    } else {
+      setCharLimit(false);
+      setText(value);
+    }
+  };
+
+  useEffect(() => {
+    if (title.length > 100) {
+      setTitleLimit(true);
+    } else {
+      setTitleLimit(false);
+    }
+  }, [title]);
+
   return (
     <>
       <div className="editor">
@@ -67,6 +88,10 @@ export default function Edit() {
                     ? alert("제목을 입력하세요.")
                     : text.length == 0
                     ? alert("내용을 입력하세요.")
+                    : titleLimit
+                    ? alert("제목의 글자수는 최대 100자로 제한됩니다.")
+                    : charLimit
+                    ? alert("본문의 글자수는 최대 20,000자로 제한됩니다.")
                     : db
                         .collection("post")
                         .doc(urlSearch.get("docId"))
@@ -105,7 +130,8 @@ export default function Edit() {
           apiKey={tinymcekey}
           onInit={(evt, editor) => (editorRef.current = editor)}
           outputFormat="text"
-          onEditorChange={(newText) => setText(newText)}
+          onEditorChange={handleUpdate}
+          // onEditorChange={(newText) => setText(newText)}
           init={{
             width: "100%",
             min_height: 700,

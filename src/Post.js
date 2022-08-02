@@ -5,8 +5,8 @@ import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { db, storage } from "./index.js";
 import { getAuth } from "firebase/auth";
 import { Editor } from "@tinymce/tinymce-react";
-// import { arrayUnion, arrayRemove } from "firebase/firestore";
 import ReactLoading from "react-loading";
+import { useEffect } from "react";
 
 export default function Post() {
   const uid = window.localStorage.getItem("uid");
@@ -21,6 +21,8 @@ export default function Post() {
   const [text, setText] = useState("");
   const editorRef = useRef(null);
   const [noInfo, setNoInfo] = useState();
+  const [charLimit, setCharLimit] = useState();
+  const [titleLimit, setTitleLimit] = useState();
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -36,16 +38,25 @@ export default function Post() {
         }
       });
   }
-  // const [postBtn, setPostBtn] = useState(true);
 
-  // onAuthStateChanged(auth, (user) => {
-  //   if (user) {
-  //     setPostBtn(true);
-  //   } else {
-  //     setPostBtn(false);
-  //     history.push("/");
-  //   }
-  // });
+  const handleUpdate = (value, editor) => {
+    const length = editor.getContent({ format: "text" }).length;
+
+    if (length > 20000) {
+      setCharLimit(true);
+    } else {
+      setCharLimit(false);
+      setText(value);
+    }
+  };
+
+  useEffect(() => {
+    if (title.length > 100) {
+      setTitleLimit(true);
+    } else {
+      setTitleLimit(false);
+    }
+  }, [title]);
 
   return (
     <>
@@ -71,6 +82,10 @@ export default function Post() {
                     ? alert("제목을 입력하세요.")
                     : text.length == 0
                     ? alert("내용을 입력하세요.")
+                    : titleLimit
+                    ? alert("제목의 글자수는 최대 100자로 제한됩니다.")
+                    : charLimit
+                    ? alert("본문의 글자수는 최대 20,000자로 제한됩니다.")
                     : newDoc
                         .set({
                           title: title,
@@ -96,11 +111,6 @@ export default function Post() {
                           docId: newDoc.id,
                           timeStamp: Timestamp.now(),
                         });
-                  // db.collection("user-info")
-                  //   .doc(uid)
-                  //   .update({
-                  //     posts: arrayUnion({ title: title, docId: newDoc.id }),
-                  //   });
                 }
               }}
             >
@@ -117,10 +127,12 @@ export default function Post() {
           apiKey={tinymcekey}
           onInit={(evt, editor) => (editorRef.current = editor)}
           outputFormat="text"
-          onEditorChange={(newText) => setText(newText)}
+          // onEditorChange={(newText) => setText(newText)}
+          onEditorChange={handleUpdate}
           init={{
             width: "100%",
             min_height: 700,
+            max_chars: 10,
             mode: "exact",
             language: "ko_KR",
             menubar: false,
@@ -147,28 +159,7 @@ export default function Post() {
             toolbar:
               "bold italic strikethrough underline forecolor backcolor emoticons image media link ",
             lists_indent_on_tab: false,
-            // images_upload_url: "postAcceptor.php",
-            // automatic_uploads: false,
-            // image_title: true,
 
-            // automatic_uploads: true,
-
-            // file_picker_callback: function(callback, value, meta) {
-            //   // Provide file and text for the link dialog
-            //   if (meta.filetype == 'file') {
-            //     callback('mypage.html', {text: 'My text'});
-            //   }
-
-            //   // Provide image and alt text for the image dialog
-            //   if (meta.filetype == 'image') {
-            //     callback('myimage.jpg', {alt: 'My alt text'});
-            //   }
-
-            //   // Provide alternative source and posted for the media dialog
-            //   if (meta.filetype == 'media') {
-            //     callback('movie.mp4', {source2: 'alt.ogg', poster: 'image.jpg'});
-            //   }
-            // },
             file_picker_callback: function(cb, value, meta) {
               var input = document.createElement("input");
               input.setAttribute("type", "file");
