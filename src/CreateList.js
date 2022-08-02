@@ -121,7 +121,7 @@ export default function CreateList(props) {
   useEffect(() => {
     const palette = {
       ISTJ: "#1f55de",
-      ISFJ: "#FFD124",
+      ISFJ: "#7DCE13",
       ISTP: "#a7a7a7",
       ISFP: "#FFB4B4",
       INTJ: "#3AB4F2",
@@ -129,7 +129,7 @@ export default function CreateList(props) {
       INTP: "#009DAE",
       INFP: "#9900F0",
       ESTJ: "#935f2f",
-      ESFJ: "#ffc45e",
+      ESFJ: "#FFD124",
       ESTP: "#1F4690",
       ESFP: "#F637EC",
       ENTJ: "#F32424",
@@ -160,11 +160,14 @@ export default function CreateList(props) {
         }}
       >
         {/* <Card.Header className="d-flex justify-content-between" as="h5"> */}
-        <Card.Header>
+        <Card.Header
+          className="pb-0"
+          style={{ background: "inherit", border: "none" }}
+        >
           <div
             style={{
               fontSize: "16px",
-              marginBottom: "6px",
+              // marginBottom: "6px",
               display: "flex",
               justifyContent: "space-between",
             }}
@@ -243,17 +246,16 @@ export default function CreateList(props) {
               </Dropdown>
             )}
           </div>
-          <h5 style={{ fontSize: "20px", fontWeight: "bold" }}>
-            {props.title}
-          </h5>
         </Card.Header>
-        <Card.Body>
+        <Card.Body className="py-1">
+          <h5 className="title">{props.title}</h5>
           <Card.Text
             className={cliHeight && "masking"}
             ref={elementRef}
             style={{
               maxHeight: "500px",
               overflow: "hidden",
+              margin: "0 3px",
             }}
           >
             {parse(props.content)}
@@ -266,7 +268,10 @@ export default function CreateList(props) {
             </div>
           )}
         </Card.Body>
-        <Card.Footer className="text-muted d-flex justify-content-evenly px-2 py-1">
+        <Card.Footer
+          className="text-muted d-flex justify-content-evenly px-2 py-0"
+          style={{ background: "inherit" }}
+        >
           <div
             className="footer"
             style={{
@@ -348,42 +353,6 @@ export default function CreateList(props) {
               </span>
             </div>
           </div>
-          {/* <div
-            className="footer"
-            style={{
-              width: "90px",
-              display: "flex",
-              cursor: "pointer",
-              height: "36px",
-              margin: "5px 0",
-              borderRadius: "3px",
-            }}
-            onClick={() => {
-              history.push(`/comments?docId=${props.docId}`);
-            }}
-          >
-            <div
-              style={{
-                width: "100%",
-                margin: "auto",
-                display: "flex",
-                justifyContent: "space-evenly",
-              }}
-            >
-              <FaRegComment size="22" color="#777777"></FaRegComment>
-              <span
-                style={{
-                  maxWidth: "48px",
-                  lineHeight: "20px",
-                  color: "#777777",
-                  textAlign: "center",
-                }}
-              >
-                {comment.length}
-              </span>
-            </div>
-          </div> */}
-
           <Link className="footer" to={`/comments?docId=${props.docId}`}>
             <div
               style={{

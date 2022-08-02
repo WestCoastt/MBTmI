@@ -1,7 +1,6 @@
 /* eslint no-restricted-globals: ["off"] */
 import React, { useState, useEffect } from "react";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
-import { useBeforeunload } from "react-beforeunload";
 import { Col, Row, Button, Form } from "react-bootstrap";
 import { db } from "./index.js";
 import { getAuth } from "firebase/auth";

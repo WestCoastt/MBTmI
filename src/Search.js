@@ -96,6 +96,9 @@ function Search(props) {
           content={a.data.content}
           uid={a.data.uid}
           docId={a.data.docId}
+          nickname={a.data.nickname}
+          timestamp={a.data.timeStamp.seconds}
+          mbti={a.data.mbti}
         ></CreateList>
       ))}
 

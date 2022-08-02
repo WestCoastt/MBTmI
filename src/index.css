@@ -1,24 +1,25 @@
-@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400&display=swap");
 
 * {
   box-sizing: border-box;
 }
 
 body {
-  font-size: 18px;
+  font-size: 16px;
   /* margin: auto;
   width: 640px; */
   background: #e2e8f0;
-  font-family: "Noto Sans KR", sans-serif;
+  font-family: Roboto, Noto Sans KR, sans-serif, -apple-system,
+    AppleSDGothicNeo-Regular, BlinkMacSystemFont, Helvetica, Arial;
 
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-code {
+/* code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
-}
+} */
 
 .main {
   margin: auto;
@@ -28,6 +29,18 @@ code {
 .card-header {
   line-height: 36px;
   font-size: 20px;
+}
+
+h5 {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 14px;
+}
+.title {
+  height: 27px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .board {
@@ -43,6 +56,7 @@ code {
   line-height: 20px;
   text-decoration: none;
   color: initial;
+  font-weight: 600;
 }
 
 .nickname:hover {
@@ -61,7 +75,8 @@ code {
   text-align: center;
   line-height: 16px;
   color: white;
-  font-family: "Roboto";
+  font-family: Roboto, -apple-system, AppleSDGothicNeo-Regular,
+    BlinkMacSystemFont;
 }
 
 .timestamp {
@@ -197,7 +212,7 @@ video {
 .nav-link {
   color: #65676b;
   font-size: 20px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .nav-link:hover,
@@ -220,7 +235,7 @@ video {
 
 .list-group-item a {
   text-decoration: none;
-  color: #1f55de;
+  color: inherit;
 }
 
 .posts p {
@@ -347,6 +362,9 @@ input {
 }
 
 @media screen and (max-width: 1024px) {
+  h5 {
+    font-size: 20px;
+  }
   .card-body iframe,
   video {
     max-width: 68vw;
@@ -356,7 +374,7 @@ input {
 
 @media screen and (max-width: 768px) {
   body {
-    font-size: 16px;
+    font-size: 14px;
   }
   .card-header {
     font-size: 18px;
@@ -385,6 +403,9 @@ input {
 }
 
 @media screen and (max-width: 576px) {
+  h5 {
+    font-size: 18px;
+  }
   /* body {
     font-size: 14px;
   }

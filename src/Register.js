@@ -1,7 +1,9 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 
 export default function Register(props) {
+  const history = useHistory();
   const auth = getAuth();
   const provider = new GoogleAuthProvider();
 
@@ -38,23 +40,7 @@ export default function Register(props) {
             background: "white",
           }}
           onClick={() => {
-            signInWithPopup(auth, provider)
-              .then((result) => {
-                const user = result.user;
-                {
-                  props.nickname != null
-                    ? (window.location.href = `/user?uid=${user.uid}`)
-                    : (window.location.href = "/");
-                }
-              })
-              .catch((error) => {
-                const errorCode = error.code;
-                const errorMessage = error.message;
-                const email = error.email;
-                const credential = GoogleAuthProvider.credentialFromError(
-                  error
-                );
-              });
+            signInWithPopup(auth, provider).then((result) => {});
           }}
         >
           <div

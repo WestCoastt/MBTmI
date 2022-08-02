@@ -21,7 +21,6 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import ReactLoading from "react-loading";
-import GoogleButton from "react-google-button";
 import { FiSearch, FiMoreHorizontal } from "react-icons/fi";
 import { FaUserCircle } from "react-icons/fa";
 import { BsPencilSquare } from "react-icons/bs";
@@ -31,15 +30,14 @@ function App() {
   const [nickname, setNickname] = useState("");
   const history = useHistory();
   const [post, setPost] = useState([]);
-  // const [signUp, setSignUP] = useState(false);
   const auth = getAuth();
   const user = auth.currentUser;
   const provider = new GoogleAuthProvider();
-  // const getClose = (send) => {
-  //   setSignUP(send);
-  // };
 
   const [create, setCreate] = useState(false);
+
+  const [newPost, setNewPost] = useState();
+  const [notification, setNotification] = useState();
 
   const [lastVisible, setLastVisible] = useState(null);
 
@@ -54,7 +52,19 @@ function App() {
         setPost(postArr);
         setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
       });
+    db.collection("newPost")
+      .orderBy("timeStamp", "desc")
+      .limit(1)
+      .onSnapshot((snapshot) => {
+        setNewPost(snapshot);
+      });
   }, []);
+
+  useEffect(() => {
+    if (scrollY >= 1800) {
+      setNotification(true);
+    }
+  }, [newPost]);
 
   const [target, setTarget] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -73,7 +83,6 @@ function App() {
           const addArr = snapshot.docs.map((doc) => ({
             data: doc.data(),
           }));
-          // console.log([...post, ...addArr]);
           setPost([...post, ...addArr]);
           setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
         });
@@ -97,7 +106,6 @@ function App() {
   onAuthStateChanged(auth, (user) => {
     if (user) {
       window.localStorage.setItem("uid", user.uid);
-      // setSignUP(false);
       setCreate(true);
       db.collection("user-info")
         .doc(user.uid)
@@ -109,6 +117,11 @@ function App() {
         })
         .catch(() => {
           setNickname(null);
+          {
+            nickname == null
+              ? history.push(`/user?uid=${uid}`)
+              : history.push("/");
+          }
         });
     } else {
       setCreate(false);
@@ -129,35 +142,15 @@ function App() {
   };
 
   const LogIn = () => {
-    signInWithPopup(auth, provider)
-      .then((result) => {
-        // This gives you a Google Access Token. You can use it to access the Google API.
-        const credential = GoogleAuthProvider.credentialFromResult(result);
-        const token = credential.accessToken;
-        // The signed-in user info.
-        const user = result.user;
-        // ...
-      })
-      .catch((error) => {
-        // Handle Errors here.
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        // The email of the user's account used.
-        const email = error.email;
-        // The AuthCredential type that was used.
-        const credential = GoogleAuthProvider.credentialFromError(error);
-        // ...
-      });
+    signInWithPopup(auth, provider).then((result) => {});
   };
 
   return (
     <>
       <Route path="/register">
-        <Register></Register>
+        <Register nickname={nickname}></Register>
       </Route>
       <div className="main">
-        {/* {signUp && <SignUp getClose={getClose}></SignUp>} */}
-
         <Navbar
           style={{ minWidth: "360px" }}
           className="py-0"
@@ -167,13 +160,7 @@ function App() {
         >
           <Container fluid className="px-2" style={{ width: "768px" }}>
             <Navbar.Brand className="text-light mx-0">
-              <Link
-                to="/"
-                style={{ textDecoration: "none", color: "white" }}
-                // onClick={() => {
-                //   setCategory("전체글");
-                // }}
-              >
+              <Link to="/" style={{ textDecoration: "none", color: "white" }}>
                 MBT(m)I
               </Link>
             </Navbar.Brand>
@@ -181,24 +168,6 @@ function App() {
             <div
               style={{ minWidth: "108px", display: "flex", margin: "8px 0" }}
             >
-              {/* <div
-              style={{
-                margin: "auto",
-                width: "40px",
-                height: "40px",
-                borderRadius: "50%",
-                background: "white",
-                cursor: "pointer",
-                lineHeight: "36px",
-                textAlign: "center",
-              }}
-              onClick={() => {
-                history.push("/search");
-              }}
-            >
-              <FiSearch size="22"></FiSearch>
-            </div> */}
-
               <Link
                 style={{
                   margin: "auto",
@@ -301,7 +270,6 @@ function App() {
                     variant="outline-light"
                     size="sm"
                     onClick={() => {
-                      // setSignUP(true);
                       history.push("/register");
                     }}
                   >
@@ -330,6 +298,25 @@ function App() {
         ) : (
           <div className="board">
             <Route exact path="/">
+              {notification && (
+                <Container className="d-flex justify-content-center">
+                  <Button
+                    className="rounded-pill"
+                    style={{
+                      position: "fixed",
+                      zIndex: "10",
+                      fontSize: "inherit",
+                    }}
+                    onClick={() => {
+                      window.scrollTo(0, 0);
+                      setNotification(false);
+                    }}
+                  >
+                    새 게시물
+                  </Button>
+                </Container>
+              )}
+
               {create && (
                 <Button
                   variant="primary"
@@ -354,10 +341,7 @@ function App() {
 
               {post.map((a, i) => (
                 <CreateList
-                  // key={i}
                   key={a.data.docId}
-                  // post={post}
-                  category={a.data.category}
                   title={a.data.title}
                   content={a.data.content}
                   uid={a.data.uid}
@@ -420,92 +404,5 @@ function App() {
     </>
   );
 }
-
-// const SignUp = (props) => {
-//   const history = useHistory();
-//   const auth = getAuth();
-//   const user = auth.currentUser;
-//   const provider = new GoogleAuthProvider();
-//   const sendClose = () => {
-//     props.getClose();
-//   };
-
-//   return (
-//     <div
-//       style={{
-//         position: "fixed",
-//         width: "100%",
-//         height: "100%",
-//         maxWidth: "768px",
-//         maxHeight: "1000px",
-//         zIndex: "9",
-//         backgroundColor: "rgba(0,0,0, .4)",
-//         display: "flex",
-//         flexDirection: "column",
-//         alignItems: "center",
-//         justifyContent: "center",
-//       }}
-//     >
-//       <div
-//         style={{
-//           position: "relative",
-//           width: "384px",
-//           height: "500px",
-//           backgroundColor: "white",
-//           display: "flex",
-//           flexDirection: "column",
-//           alignItems: "center",
-//           justifyContent: "center",
-//           borderRadius: "8px",
-//         }}
-//       >
-//         <Button
-//           style={{ position: "absolute", right: "10px", top: "10px" }}
-//           variant="outline-dark"
-//           size="sm"
-//           onClick={() => {
-//             sendClose(false);
-//           }}
-//         >
-//           X
-//         </Button>
-//         <GoogleButton
-//           onClick={() => {
-//             signInWithPopup(auth, provider)
-//               .then((result) => {
-//                 // This gives you a Google Access Token. You can use it to access the Google API.
-//                 const credential = GoogleAuthProvider.credentialFromResult(
-//                   result
-//                 );
-//                 const token = credential.accessToken;
-//                 // The signed-in user info.
-//                 const user = result.user;
-//                 // ...
-//                 {
-//                   props.nickname != null &&
-//                     // history.push("/user?uid=" + user.uid);
-//                     (window.location.href = `/user?uid=${user.uid}`);
-//                 }
-//               })
-//               .catch((error) => {
-//                 // Handle Errors here.
-//                 const errorCode = error.code;
-//                 const errorMessage = error.message;
-//                 // The email of the user's account used.
-//                 const email = error.email;
-//                 // The AuthCredential type that was used.
-//                 const credential = GoogleAuthProvider.credentialFromError(
-//                   error
-//                 );
-//                 // ...
-//               });
-//           }}
-//         >
-//           GOOGLE로 계속하기
-//         </GoogleButton>
-//       </div>
-//     </div>
-//   );
-// };
 
 export default App;

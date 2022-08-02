@@ -1,6 +1,6 @@
 import { Timestamp } from "firebase/firestore";
 import React, { useState, useRef } from "react";
-import { Button, Form, Col } from "react-bootstrap";
+import { Button } from "react-bootstrap";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { db, storage } from "./index.js";
 import { getAuth } from "firebase/auth";
@@ -109,7 +109,7 @@ export default function Post() {
           )}
         </div>
         <input
-          placeholder="Title"
+          placeholder="제목을 입력하세요."
           style={{ width: "100%", maxWidth: "768px", margin: "8px 0 0 0" }}
           onChange={(e) => setTitle(e.target.value)}
         ></input>

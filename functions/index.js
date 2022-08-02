@@ -1,6 +1,14 @@
 const { default: algoliasearch } = require("algoliasearch");
 const functions = require("firebase-functions");
 
+var admin = require("firebase-admin");
+
+var serviceAccount = require("./mbtmi-96d3c-firebase-adminsdk-j1xpy-fc0d46dd9d.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
 // // Create and Deploy Your First Cloud Functions
 // // https://firebase.google.com/docs/functions/write-firebase-functions
 //
@@ -64,6 +72,17 @@ exports.onDeletePost = functions
     } catch (e) {
       console.log(e.message);
     }
+  });
+
+const db = admin.firestore();
+
+exports.newPostNotification = functions
+  .region("asia-northeast3")
+  .firestore.document("post/{docid}")
+  .onCreate((snapshot, context) => {
+    db.collection("newPost").add({
+      timeStamp: admin.firestore.Timestamp.now(),
+    });
   });
 
 // exports.helloWorld = functions

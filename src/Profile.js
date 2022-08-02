@@ -4,6 +4,8 @@ import {
   useLocation,
 } from "react-router-dom/cjs/react-router-dom.min";
 import { Col, Row, Button, Form, Nav } from "react-bootstrap";
+import Modal from "react-bootstrap/Modal";
+
 import { db } from "./index.js";
 import { Link, Route } from "react-router-dom";
 import { FaRegTrashAlt } from "react-icons/fa";
@@ -28,6 +30,8 @@ export default function Profile() {
   const [gender, setGender] = useState("");
 
   const [mbti, setMbti] = useState();
+
+  const [modalShow, setModalShow] = React.useState(false);
 
   if (uid != null) {
     db.collection("user-info")
@@ -204,35 +208,7 @@ export default function Profile() {
           <button
             className="delete-account"
             variant="outline-danger"
-            onClick={() => {
-              if (window.confirm("계정을 삭제하시겠습니까?")) {
-                const posts = db.collection("post").where("uid", "==", uid);
-                const comments = db
-                  .collectionGroup("comment")
-                  .where("uid", "==", uid);
-
-                posts.get().then((snapshot) => {
-                  snapshot.docs.forEach((doc) => {
-                    doc.ref.delete();
-                  });
-                });
-                comments.get().then((snapshot) => {
-                  snapshot.docs.forEach((doc) => {
-                    doc.ref.delete();
-                  });
-                });
-
-                db.collection("user-info")
-                  .doc(uid)
-                  .delete();
-
-                deleteUser(user)
-                  .then(() => {
-                    history.push("/");
-                  })
-                  .catch((error) => {});
-              }
-            }}
+            onClick={() => setModalShow(true)}
           >
             <FaRegTrashAlt
               size="17"
@@ -240,6 +216,11 @@ export default function Profile() {
             ></FaRegTrashAlt>
             계정삭제
           </button>
+
+          <MyVerticallyCenteredModal
+            show={modalShow}
+            onHide={() => setModalShow(false)}
+          />
         </div>
       </Route>
 
@@ -255,3 +236,95 @@ export default function Profile() {
     </div>
   );
 }
+
+function MyVerticallyCenteredModal(props) {
+  const uid = window.localStorage.getItem("uid");
+  const history = useHistory();
+  const auth = getAuth();
+  const user = auth.currentUser;
+  return (
+    <Modal
+      {...props}
+      size="lg"
+      aria-labelledby="contained-modal-title-vcenter"
+      centered
+    >
+      <Modal.Header closeButton style={{ border: "none" }}>
+        <Modal.Title id="contained-modal-title-vcenter">
+          <h3>계정 삭제</h3>
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <h6>
+          해당 계정의 게시글과 댓글 등 모든 정보가 삭제되며 삭제된 정보는 복구할
+          수 없습니다.
+        </h6>
+      </Modal.Body>
+      <Modal.Footer style={{ border: "none" }}>
+        <Button
+          onClick={() => {
+            const posts = db.collection("post").where("uid", "==", uid);
+            const comments = db
+              .collectionGroup("comment")
+              .where("uid", "==", uid);
+
+            posts.get().then((snapshot) => {
+              snapshot.docs.forEach((doc) => {
+                doc.ref.delete();
+              });
+            });
+            comments.get().then((snapshot) => {
+              snapshot.docs.forEach((doc) => {
+                doc.ref.delete();
+              });
+            });
+
+            db.collection("user-info")
+              .doc(uid)
+              .delete();
+
+            deleteUser(user).then(() => {
+              history.push("/");
+            });
+            // .catch((error) => {});
+          }}
+        >
+          계정 삭제
+        </Button>
+        <Button variant="outline-dark" onClick={props.onHide}>
+          취소
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
+}
+
+// onClick={() => {
+//   if (window.confirm("계정을 삭제하시겠습니까?")) {
+//     const posts = db.collection("post").where("uid", "==", uid);
+//     const comments = db
+//       .collectionGroup("comment")
+//       .where("uid", "==", uid);
+
+//     posts.get().then((snapshot) => {
+//       snapshot.docs.forEach((doc) => {
+//         doc.ref.delete();
+//       });
+//     });
+//     comments.get().then((snapshot) => {
+//       snapshot.docs.forEach((doc) => {
+//         doc.ref.delete();
+//       });
+//     });
+
+//     db.collection("user-info")
+//       .doc(uid)
+//       .delete();
+
+//     deleteUser(user)
+//       .then(() => {
+//         history.push("/");
+//       })
+//       .catch((error) => {});
+//   }
+// }}

@@ -21,6 +21,7 @@ import { useHistory, Link } from "react-router-dom";
 
 export default function Comments() {
   const uid = window.localStorage.getItem("uid");
+  const commentUserMbti = window.localStorage.getItem("MBTI");
   const urlSearch = new URLSearchParams(window.location.search);
   const provider = new GoogleAuthProvider();
   const auth = getAuth();
@@ -34,6 +35,7 @@ export default function Comments() {
   const editorRef = useRef(null);
   const [comment, setComment] = useState([]);
   const [nickname, setNickname] = useState("");
+  const [commentNickname, setCommentNickname] = useState("");
   const [mbti, setMbti] = useState("");
   const [badgeColor, setBadgeColor] = useState();
   const [noInfo, setNoInfo] = useState();
@@ -56,7 +58,7 @@ export default function Comments() {
     db.collection("post")
       .doc(docId)
       .collection("comment")
-      .orderBy("timeStamp")
+      .orderBy("timeStamp", "asc")
       .onSnapshot((snapshot) => {
         const commentArr = snapshot.docs.map((doc) => ({
           data: doc.data(),
@@ -73,6 +75,7 @@ export default function Comments() {
         setTitle(result.data().title);
         setContent(result.data().content);
         setUserId(result.data().uid);
+        setNickname(result.data().nickname);
         setMbti(result.data().mbti);
         setTimeStamp(result.data().timeStamp.seconds);
       })
@@ -112,22 +115,22 @@ export default function Comments() {
           .doc(uid)
           .get()
           .then((result) => {
-            setNickname(result.data().nickname);
+            setCommentNickname(result.data().nickname);
           });
       }
     } else {
     }
   });
 
+  const min = 60;
+  const hour = 60 * 60;
+  const day = 60 * 60 * 24;
+  const month = 60 * 60 * 24 * 30;
+  const year = 60 * 60 * 24 * 365;
+
+  const currentTime = new Date() / 1000;
+
   useEffect(() => {
-    const min = 60;
-    const hour = 60 * 60;
-    const day = 60 * 60 * 24;
-    const month = 60 * 60 * 24 * 30;
-    const year = 60 * 60 * 24 * 365;
-
-    const currentTime = new Date() / 1000;
-
     const timeGap = currentTime - timeStamp;
     if (timeGap > year) {
       setTime(Math.floor(timeGap / year) + "년 전");
@@ -144,26 +147,25 @@ export default function Comments() {
     }
   }, [timeStamp]);
 
+  const palette = {
+    ISTJ: "#1f55de",
+    ISFJ: "#7DCE13",
+    ISTP: "#a7a7a7",
+    ISFP: "#FFB4B4",
+    INTJ: "#3AB4F2",
+    INFJ: "#b2a4ff",
+    INTP: "#009DAE",
+    INFP: "#9900F0",
+    ESTJ: "#935f2f",
+    ESFJ: "#FFD124",
+    ESTP: "#1F4690",
+    ESFP: "#F637EC",
+    ENTJ: "#F32424",
+    ENFJ: "#FF5F00",
+    ENTP: "#545f5f",
+    ENFP: "#019267",
+  };
   useEffect(() => {
-    const palette = {
-      ISTJ: "#1f55de",
-      ISFJ: "#FFD124",
-      ISTP: "#a7a7a7",
-      ISFP: "#FFB4B4",
-      INTJ: "#3AB4F2",
-      INFJ: "#b2a4ff",
-      INTP: "#009DAE",
-      INFP: "#9900F0",
-      ESTJ: "#935f2f",
-      ESFJ: "#ffc45e",
-      ESTP: "#1F4690",
-      ESFP: "#F637EC",
-      ENTJ: "#F32424",
-      ENFJ: "#FF5F00",
-      ENTP: "#545f5f",
-      ENFP: "#019267",
-    };
-
     Object.entries(palette).map(([key, value]) => {
       if (mbti == key) {
         setBadgeColor(value);
@@ -181,7 +183,10 @@ export default function Comments() {
           margin: "15px 0px",
         }}
       >
-        <Card.Header>
+        <Card.Header
+          className="pb-0"
+          style={{ background: "inherit", border: "none" }}
+        >
           <div
             style={{
               fontSize: "16px",
@@ -211,9 +216,7 @@ export default function Comments() {
                     <Tooltip id="button-tooltip-2">{koreanTime}</Tooltip>
                   }
                 >
-                  <Link to={`/comments?docId=${docId}`} className="timestamp">
-                    {time}
-                  </Link>
+                  <span className="timestamp">{time}</span>
                 </OverlayTrigger>
               </div>
             </div>
@@ -288,12 +291,15 @@ export default function Comments() {
               </OverlayTrigger>
             </div> */}
           </div>
-          {title}
         </Card.Header>
-        <Card.Body>
-          <Card.Text>{parse(content)}</Card.Text>
+        <Card.Body className="py-1">
+          <h5>{title}</h5>
+          <Card.Text style={{ margin: "0 3px" }}>{parse(content)}</Card.Text>
         </Card.Body>
-        <Card.Footer className="text-muted d-flex justify-content-evenly px-2 py-1">
+        <Card.Footer
+          className="text-muted d-flex justify-content-evenly px-2 py-0"
+          style={{ background: "inherit" }}
+        >
           <div
             className="footer"
             style={{
@@ -524,7 +530,8 @@ export default function Comments() {
                       : newDoc.set({
                           uid: uid,
                           commentId: newDoc.id,
-                          nickname: nickname,
+                          nickname: commentNickname,
+                          mbti: commentUserMbti,
                           comment: text,
                           timeStamp: Timestamp.now(),
                         });
@@ -579,15 +586,76 @@ export default function Comments() {
           <Card.Body>
             <div
               style={{
-                fontSize: "16px",
-                marginBottom: "20px",
+                marginBottom: "4px",
                 display: "flex",
                 justifyContent: "space-between",
               }}
             >
-              <div style={{ display: "flex" }}>
+              {/* <div style={{ display: "flex" }}>
                 <FaUserCircle size="36" color="#a0aec0"></FaUserCircle>
                 <Link className="nickname">{a.data.nickname}</Link>
+                <span>{a.data.mbti}</span>
+              </div> */}
+
+              <div style={{ display: "flex" }}>
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  <FaUserCircle
+                    size="36"
+                    color="#a0aec0"
+                    style={{ margin: "0 7px" }}
+                  ></FaUserCircle>
+
+                  {Object.entries(palette).map(
+                    ([key, value]) =>
+                      a.data.mbti == key && (
+                        <p
+                          className="badge"
+                          style={{
+                            background: `${value}`,
+                          }}
+                        >
+                          {a.data.mbti}
+                        </p>
+                      )
+                  )}
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  <Link className="nickname">{a.data.nickname}</Link>
+
+                  <OverlayTrigger
+                    placement="right"
+                    overlay={
+                      <Tooltip id="button-tooltip-2">
+                        {moment(a.data.timeStamp.seconds * 1000).format("llll")}
+                      </Tooltip>
+                    }
+                  >
+                    <span className="timestamp">
+                      {currentTime - a.data.timeStamp.seconds > year
+                        ? Math.floor(
+                            (currentTime - a.data.timeStamp.seconds) / year
+                          ) + "년 전"
+                        : currentTime - a.data.timeStamp.seconds > month
+                        ? Math.floor(
+                            (currentTime - a.data.timeStamp.seconds) / month
+                          ) + "개월 전"
+                        : currentTime - a.data.timeStamp.seconds > day
+                        ? Math.floor(
+                            (currentTime - a.data.timeStamp.seconds) / day
+                          ) + "일 전"
+                        : currentTime - a.data.timeStamp.seconds > hour
+                        ? Math.floor(
+                            (currentTime - a.data.timeStamp.seconds) / hour
+                          ) + "시간 전"
+                        : currentTime - a.data.timeStamp.seconds > min
+                        ? Math.floor(
+                            (currentTime - a.data.timeStamp.seconds) / min
+                          ) + "분 전"
+                        : "방금 전"}
+                    </span>
+                  </OverlayTrigger>
+                </div>
               </div>
 
               {user != null && uid == a.data.uid && (
@@ -635,19 +703,81 @@ export default function Comments() {
 
             <div
               style={{
-                fontSize: "16px",
-                // border: "1px solid #b5d5ff",
-                // borderRadius: "7.5px",
-                // padding: "10px",
+                margin: "0 3px",
               }}
             >
               {parse(a.data.comment)}
             </div>
-            {/* <FiHeart size="17" color="#FF6C85"></FiHeart>
-            <FaRegComment size="17" color="#777777"></FaRegComment> */}
           </Card.Body>
         </Card>
       ))}
     </>
   );
+}
+
+{
+  /* <Card.Header
+          className="pb-0"
+          style={{ background: "inherit", border: "none" }}
+        >
+          <div
+            style={{
+              fontSize: "16px",
+              // marginBottom: "6px",
+              display: "flex",
+              justifyContent: "space-between",
+            }}
+          >
+            <div style={{ display: "flex" }}>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <FaUserCircle
+                  size="36"
+                  color="#a0aec0"
+                  style={{ margin: "0 7px" }}
+                ></FaUserCircle>
+                <p className="badge" style={{ background: `${badgeColor}` }}>
+                  {props.mbti}
+                </p>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <Link className="nickname">{props.nickname}</Link>
+
+                <OverlayTrigger
+                  placement="right"
+                  overlay={
+                    <Tooltip id="button-tooltip-2">{koreanTime}</Tooltip>
+                  }
+                >
+                  <Link
+                    to={`/comments?docId=${props.docId}`}
+                    className="timestamp"
+                  >
+                    {time}
+                  </Link>
+                </OverlayTrigger>
+              </div>
+            </div>
+           
+        </Card.Header>
+        <Card.Body className="py-1">
+          <h5>{props.title}</h5>
+          <Card.Text
+            className={cliHeight && "masking"}
+            ref={elementRef}
+            style={{
+              maxHeight: "500px",
+              overflow: "hidden",
+              margin: "0 3px",
+            }}
+          >
+            {parse(props.content)}
+          </Card.Text>
+         
+          )}
+        </Card.Body>
+        <Card.Footer
+          className="text-muted d-flex justify-content-evenly px-2 py-0"
+          style={{ background: "inherit" }}
+        ></Card.Footer> */
 }
