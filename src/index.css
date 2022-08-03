@@ -84,7 +84,8 @@ h5 {
   line-height: 36px;
   /* line-height: 28px; */
   font-size: 12px;
-  /* font-weight: 700; */
+  font-weight: 700;
+  /* font-weight: 500; */
   color: rgb(120, 124, 126);
   text-decoration: none;
 }

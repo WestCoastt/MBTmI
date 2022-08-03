@@ -1,15 +1,20 @@
 import Algoliasearch from "algoliasearch";
 import React, { useEffect, useState } from "react";
-import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
-import { Form, FormControl, Button } from "react-bootstrap";
+import {
+  useHistory,
+  useLocation,
+} from "react-router-dom/cjs/react-router-dom.min";
+import { Form, FormControl, Button, Container } from "react-bootstrap";
 import { db } from "./index";
 import CreateList from "./CreateList";
 import { BsPencilSquare } from "react-icons/bs";
 
 function Search(props) {
   const history = useHistory();
+  const location = useLocation();
   const [search, setSearch] = useState("");
   const [result, setResult] = useState([]);
+  const [noResult, setNoResult] = useState();
 
   const client = Algoliasearch(
     process.env.REACT_APP_ALGOLIA_APP_ID,
@@ -23,15 +28,21 @@ function Search(props) {
       const response = await index.search(search);
 
       const resultArr = response.hits.map((a) => a.objectID);
-      // console.log(resultArr);
-      db.collection("post")
-        .where("docId", "in", resultArr)
-        .onSnapshot((snapshot) => {
-          const searchArr = snapshot.docs.map((doc) => ({
-            data: doc.data(),
-          }));
-          setResult(searchArr);
-        });
+      // console.log(resultArr.length);
+
+      if (resultArr.length == 0) {
+        setNoResult(true);
+      } else {
+        setNoResult(false);
+        db.collection("post")
+          .where("docId", "in", resultArr)
+          .onSnapshot((snapshot) => {
+            const searchArr = snapshot.docs.map((doc) => ({
+              data: doc.data(),
+            }));
+            setResult(searchArr);
+          });
+      }
     } catch (e) {
       console.log(e);
     }
@@ -41,6 +52,7 @@ function Search(props) {
     if (e.key == "Enter") {
       if (search.length >= 1) {
         e.preventDefault();
+        setNoResult(false);
         history.push("/search?q=" + search);
 
         findData();
@@ -89,18 +101,24 @@ function Search(props) {
         ></FormControl>
       </Form>
 
-      {result.map((a, i) => (
-        <CreateList
-          key={a.data.docId}
-          title={a.data.title}
-          content={a.data.content}
-          uid={a.data.uid}
-          docId={a.data.docId}
-          nickname={a.data.nickname}
-          timestamp={a.data.timeStamp.seconds}
-          mbti={a.data.mbti}
-        ></CreateList>
-      ))}
+      {noResult ? (
+        <Container className="mt-3">
+          "{location.search.substring(3)}" 에 해당하는 검색결과가 없습니다.
+        </Container>
+      ) : (
+        result.map((a, i) => (
+          <CreateList
+            key={a.data.docId}
+            title={a.data.title}
+            content={a.data.content}
+            uid={a.data.uid}
+            docId={a.data.docId}
+            nickname={a.data.nickname}
+            timestamp={a.data.timeStamp.seconds}
+            mbti={a.data.mbti}
+          ></CreateList>
+        ))
+      )}
 
       {props.create && (
         <Button
