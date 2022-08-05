@@ -96,6 +96,8 @@ export default function Post() {
                           docId: newDoc.id,
                           likedUser: [],
                           likes: 0,
+                          comments: 0,
+                          totalScore: 0,
                           timeStamp: Timestamp.now(),
                         })
                         .then(() => {

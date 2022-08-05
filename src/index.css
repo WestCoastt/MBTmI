@@ -32,9 +32,9 @@ body {
 }
 
 h5 {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: bold;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 .title {
   height: 27px;
@@ -133,7 +133,7 @@ video {
   display: flex;
   position: absolute;
   z-index: 99;
-  bottom: 74px;
+  bottom: 64px;
   right: 0px;
 }
 
@@ -166,7 +166,10 @@ video {
   border-radius: 16px;
 }
 
-.dropdown-toggle::after {
+/* .dropdown-toggle::after {
+  display: none;
+} */
+.dropdown-toggle:not(#dropdown-split-basic)::after {
   display: none;
 }
 
@@ -283,15 +286,16 @@ input {
 }
 
 .card-footer {
-  font-size: 19px;
+  font-size: 16px;
+  margin-top: 16px;
 }
 
 .footer {
   width: 90px;
   display: flex;
   text-decoration: none;
-  height: 36px;
-  margin: 5px 0;
+  height: 32px;
+  margin: 3px 0;
   border-radius: 3px;
 }
 
@@ -314,6 +318,76 @@ input {
   background-position: 10px 9px;
   padding-left: 40px;
 } */
+.head-container {
+  height: 46px;
+  margin: 0;
+}
+
+.first {
+  transform: translateY(0px);
+  /* transition: all 0.3s; */
+}
+.second {
+  transform: translateY(-46px);
+  /* transition: all 0.3s; */
+}
+.third {
+  transform: translateY(-92px);
+  /* transition: all 0.3s; */
+}
+.fourth {
+  transform: translateY(-138px);
+  /* transition: all 0.3s; */
+}
+.fifth {
+  transform: translateY(-184px);
+  /* transition: all 0.3s; */
+}
+
+.best-head {
+  width: 100%;
+  white-space: nowrap;
+  color: inherit;
+  line-height: 46px;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: none;
+}
+.best-head:hover {
+  color: inherit;
+}
+
+.best-badge {
+  margin: 14px 8px 0 0;
+  font-size: 12px;
+  min-width: 5%;
+  height: 22px;
+  line-height: 20px;
+  color: white;
+  text-align: center;
+  border-radius: 4px;
+  background: #1876f2;
+}
+.best-number {
+  color: #ff6c85;
+  font-weight: 700;
+  margin: 0 10px 0 0;
+  line-height: 46px;
+}
+
+.best p {
+  line-height: 24px;
+}
+.comment-badge {
+  line-height: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0 1px 0 6px;
+}
+#dropdown-split-basic {
+  line-height: 27px;
+}
 
 @media (hover: hover) {
   .footer:hover {
@@ -377,13 +451,6 @@ input {
   body {
     font-size: 14px;
   }
-  .card-header {
-    font-size: 18px;
-  }
-  .card-footer svg {
-    width: 21px;
-    height: 21px;
-  }
 
   .card-body iframe,
   video {
@@ -405,21 +472,24 @@ input {
 
 @media screen and (max-width: 576px) {
   h5 {
-    font-size: 18px;
+    font-size: 16px;
   }
   /* body {
     font-size: 14px;
+  }*/
+  .nickname {
+    font-size: 14px;
   }
-  .card-header {
-    font-size: 16px;
-  } */
+
   .card-footer {
-    font-size: 18px;
+    font-size: 14px;
   }
+
   .card-footer svg {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
   }
+
   .nav-link {
     font-size: 18px;
   }
@@ -431,6 +501,9 @@ input {
     line-height: 28px;
   }
 
+  .best-badge {
+    min-width: 10%;
+  }
   /* .list-group-item {
     font-size: 14px;
   } */

@@ -1,21 +1,15 @@
 /* eslint no-restricted-globals: ["off"] */
 import React, { useState, useEffect, useRef } from "react";
-import { Card, Button, Dropdown } from "react-bootstrap";
-import OverlayTrigger from "react-bootstrap/OverlayTrigger";
-import Tooltip from "react-bootstrap/Tooltip";
+import { Card, Dropdown, OverlayTrigger, Tooltip } from "react-bootstrap";
 import moment from "moment";
 import "moment/locale/ko";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { Link } from "react-router-dom";
 import "./App.css";
 import { db } from "./index.js";
+import LoginModal from "./LoginModal";
 import parse from "html-react-parser";
-import {
-  getAuth,
-  signInWithPopup,
-  GoogleAuthProvider,
-  onAuthStateChanged,
-} from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { arrayUnion, arrayRemove, Timestamp } from "firebase/firestore";
 import { FiHeart, FiMoreHorizontal, FiShare2 } from "react-icons/fi";
 import { FaRegComment, FaUserCircle } from "react-icons/fa";
@@ -24,14 +18,16 @@ export default function CreateList(props) {
   const uid = window.localStorage.getItem("uid");
   const history = useHistory();
   const auth = getAuth();
-  const provider = new GoogleAuthProvider();
   const [user, setUser] = useState(null);
   const [like, setLike] = useState(false);
   const [cnt, setCnt] = useState();
-  const [comment, setComment] = useState([]);
+  const [totalScore, setTotalScore] = useState();
+  const [comments, setComments] = useState();
+  // const [comment, setComment] = useState([]);
   const [noInfo, setNoInfo] = useState();
   const [time, setTime] = useState();
   const [badgeColor, setBadgeColor] = useState();
+  const [modalShow, setModalShow] = React.useState(false);
   const koreanTime = moment(props.timestamp * 1000).format("llll");
 
   db.collection("post")
@@ -39,23 +35,26 @@ export default function CreateList(props) {
     .get()
     .then((doc) => {
       setCnt(doc.data().likes);
+      setComments(doc.data().comments);
+      setTotalScore(doc.data().totalScore);
     });
 
-  useEffect(() => {
-    db.collection("post")
-      .doc(props.docId)
-      .collection("comment")
-      .onSnapshot((snapshot) => {
-        const commentArr = snapshot.docs.map((doc) => ({
-          data: doc.data(),
-        }));
-        setComment(commentArr);
-      });
-  }, []);
+  // useEffect(() => {
+  //   db.collection("post")
+  //     .doc(props.docId)
+  //     .collection("comment")
+  //     .onSnapshot((snapshot) => {
+  //       const commentArr = snapshot.docs.map((doc) => ({
+  //         data: doc.data(),
+  //       }));
+  //       setComment(commentArr);
+  //     });
+  // }, []);
 
   onAuthStateChanged(auth, (user) => {
     if (user) {
       setUser(user);
+      setModalShow(false);
     } else {
       setUser(null);
     }
@@ -151,6 +150,7 @@ export default function CreateList(props) {
         width: "100%",
       }}
     >
+      <LoginModal show={modalShow} onHide={() => setModalShow(false)} />
       <Card
         style={{
           width: "100%",
@@ -270,7 +270,7 @@ export default function CreateList(props) {
         </Card.Body>
         <Card.Footer
           className="text-muted d-flex justify-content-evenly px-2 py-0"
-          style={{ background: "inherit" }}
+          style={{ background: "inherit", height: "38px" }}
         >
           <div
             className="footer"
@@ -278,8 +278,7 @@ export default function CreateList(props) {
               width: "90px",
               display: "flex",
               cursor: "pointer",
-              height: "36px",
-              margin: "5px 0",
+              height: "32px",
               borderRadius: "3px",
             }}
             onClick={() => {
@@ -292,6 +291,7 @@ export default function CreateList(props) {
                           .doc(props.docId)
                           .update({
                             likes: cnt + 1,
+                            totalScore: totalScore + 0.4,
                             likedUser: arrayUnion(uid),
                           }) &&
                         db
@@ -309,6 +309,7 @@ export default function CreateList(props) {
                           .doc(props.docId)
                           .update({
                             likes: cnt - 1,
+                            totalScore: totalScore - 0.4,
                             likedUser: arrayRemove(uid),
                           }) &&
                         db
@@ -319,11 +320,12 @@ export default function CreateList(props) {
                           .delete() &&
                         setLike(false)
                     : history.push("/user?uid=" + user.uid)
-                  : signInWithPopup(auth, provider)
-                      .then()
-                      .catch(() => {
-                        console.log("로그인필요");
-                      });
+                  : setModalShow(true);
+                //  signInWithPopup(auth, provider)
+                //     .then()
+                //     .catch(() => {
+                //       console.log("로그인필요");
+                //     });
               }
             }}
           >
@@ -336,7 +338,7 @@ export default function CreateList(props) {
               }}
             >
               <FiHeart
-                size="22"
+                size="18"
                 color="#FF6C85"
                 fill={like == true ? "#FF6C85" : "none"}
               ></FiHeart>
@@ -344,7 +346,7 @@ export default function CreateList(props) {
               <span
                 style={{
                   maxWidth: "48px",
-                  lineHeight: "20px",
+                  lineHeight: "16px",
                   color: "#FF6C85",
                   textAlign: "center",
                 }}
@@ -362,16 +364,16 @@ export default function CreateList(props) {
                 justifyContent: "space-evenly",
               }}
             >
-              <FaRegComment size="22" color="#777777"></FaRegComment>
+              <FaRegComment size="18" color="#777777"></FaRegComment>
               <span
                 style={{
                   maxWidth: "48px",
-                  lineHeight: "20px",
+                  lineHeight: "16px",
                   color: "#777777",
                   textAlign: "center",
                 }}
               >
-                {comment.length}
+                {comments}
               </span>
             </div>
           </Link>
@@ -382,7 +384,7 @@ export default function CreateList(props) {
               width: "66px",
               display: "flex",
               cursor: "pointer",
-              height: "36px",
+              height: "32px",
               borderRadius: "3px",
             }}
             onClick={() => {
@@ -412,7 +414,7 @@ export default function CreateList(props) {
                 justifyContent: "space-evenly",
               }}
             >
-              <FiShare2 size="21" color="#777777"></FiShare2>
+              <FiShare2 size="18" color="#777777"></FiShare2>
             </div>
           </div>
         </Card.Footer>

@@ -1,11 +1,16 @@
 /* eslint no-restricted-globals: ["off"] */
 import React, { useState, useEffect, useRef } from "react";
-import { Card, Button, Dropdown } from "react-bootstrap";
-import OverlayTrigger from "react-bootstrap/OverlayTrigger";
-import Tooltip from "react-bootstrap/Tooltip";
+import {
+  Card,
+  Button,
+  Dropdown,
+  OverlayTrigger,
+  Tooltip,
+} from "react-bootstrap";
 import moment from "moment";
 import "moment/locale/ko";
 import { db } from "./index.js";
+import LoginModal from "./LoginModal";
 import {
   getAuth,
   GoogleAuthProvider,
@@ -28,6 +33,7 @@ export default function Comments() {
   const user = auth.currentUser;
   const tinymcekey = process.env.REACT_APP_TINYMCE_KEY;
   const history = useHistory();
+  const [modalShow, setModalShow] = React.useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [userId, setUserId] = useState("");
@@ -41,6 +47,8 @@ export default function Comments() {
   const [noInfo, setNoInfo] = useState();
   const [like, setLike] = useState(false);
   const [cnt, setCnt] = useState();
+  const [comments, setComments] = useState();
+  const [totalScore, setTotalScore] = useState();
   const [timeStamp, setTimeStamp] = useState();
   const [time, setTime] = useState();
   const koreanTime = moment(timeStamp * 1000).format("llll");
@@ -51,8 +59,10 @@ export default function Comments() {
     .get()
     .then((doc) => {
       setCnt(doc.data().likes);
-    })
-    .catch(() => {});
+      setComments(doc.data().comments);
+      setTotalScore(doc.data().totalScore);
+    });
+  // .catch(() => {});
 
   useEffect(() => {
     db.collection("post")
@@ -110,6 +120,7 @@ export default function Comments() {
 
   onAuthStateChanged(auth, (user) => {
     if (user) {
+      setModalShow(false);
       if (noInfo == false) {
         db.collection("user-info")
           .doc(uid)
@@ -183,6 +194,7 @@ export default function Comments() {
           margin: "15px 0px",
         }}
       >
+        <LoginModal show={modalShow} onHide={() => setModalShow(false)} />
         <Card.Header
           className="pb-0"
           style={{ background: "inherit", border: "none" }}
@@ -298,7 +310,7 @@ export default function Comments() {
         </Card.Body>
         <Card.Footer
           className="text-muted d-flex justify-content-evenly px-2 py-0"
-          style={{ background: "inherit" }}
+          style={{ background: "inherit", height: "38px" }}
         >
           <div
             className="footer"
@@ -306,8 +318,7 @@ export default function Comments() {
               width: "90px",
               display: "flex",
               cursor: "pointer",
-              height: "36px",
-              margin: "5px 0",
+              height: "32px",
               borderRadius: "3px",
             }}
             onClick={() => {
@@ -320,6 +331,7 @@ export default function Comments() {
                           .doc(docId)
                           .update({
                             likes: cnt + 1,
+                            totalScore: totalScore + 0.4,
                             likedUser: arrayUnion(uid),
                           }) &&
                         db
@@ -337,6 +349,7 @@ export default function Comments() {
                           .doc(docId)
                           .update({
                             likes: cnt - 1,
+                            totalScore: totalScore - 0.4,
                             likedUser: arrayRemove(uid),
                           }) &&
                         db
@@ -347,11 +360,12 @@ export default function Comments() {
                           .delete() &&
                         setLike(false)
                     : history.push("/user?uid=" + user.uid)
-                  : signInWithPopup(auth, provider)
-                      .then()
-                      .catch(() => {
-                        console.log("로그인필요");
-                      });
+                  : setModalShow(true);
+                //  signInWithPopup(auth, provider)
+                //     .then()
+                //     .catch(() => {
+                //       console.log("로그인필요");
+                //     });
               }
             }}
           >
@@ -364,14 +378,14 @@ export default function Comments() {
               }}
             >
               <FiHeart
-                size="22"
+                size="18"
                 color="#FF6C85"
                 fill={like == true ? "#FF6C85" : "none"}
               ></FiHeart>
               <span
                 style={{
                   maxWidth: "48px",
-                  lineHeight: "20px",
+                  lineHeight: "16px",
                   color: "#FF6C85",
                   textAlign: "center",
                 }}
@@ -380,16 +394,8 @@ export default function Comments() {
               </span>
             </div>
           </div>
-          <div
-            style={{
-              width: "90px",
-              display: "flex",
-              cursor: "default",
-              height: "36px",
-              margin: "5px 0",
-              borderRadius: "3px",
-            }}
-          >
+
+          <div className="footer" style={{ background: "none" }}>
             <div
               style={{
                 width: "100%",
@@ -398,16 +404,17 @@ export default function Comments() {
                 justifyContent: "space-evenly",
               }}
             >
-              <FaRegComment size="22" color="#777777"></FaRegComment>
+              <FaRegComment size="18" color="#777777"></FaRegComment>
               <span
                 style={{
                   maxWidth: "48px",
-                  lineHeight: "20px",
+                  lineHeight: "16px",
                   color: "#777777",
                   textAlign: "center",
                 }}
               >
-                {comment.length}
+                {/* {comment.length} */}
+                {comments}
               </span>
             </div>
           </div>
@@ -418,8 +425,7 @@ export default function Comments() {
               width: "66px",
               display: "flex",
               cursor: "pointer",
-              height: "36px",
-              margin: "5px 0",
+              height: "32px",
               borderRadius: "3px",
             }}
             onClick={() => {
@@ -450,7 +456,7 @@ export default function Comments() {
                 justifyContent: "space-evenly",
               }}
             >
-              <FiShare2 size="21" color="#777777"></FiShare2>
+              <FiShare2 size="18" color="#777777"></FiShare2>
             </div>
           </div>
         </Card.Footer>
@@ -508,7 +514,8 @@ export default function Comments() {
                 marginLeft: "10px",
               }}
             >
-              댓글 {comment.length}
+              {/* 댓글 {comment.length} */}
+              댓글 {comments}
             </span>
             {user != null ? (
               <Button
@@ -547,6 +554,12 @@ export default function Comments() {
                       })
                       .then(() => {
                         setText("");
+                      });
+                    db.collection("post")
+                      .doc(docId)
+                      .update({
+                        comments: comments + 1,
+                        totalScore: totalScore + 0.6,
                       });
                   }
                 }}
@@ -691,6 +704,12 @@ export default function Comments() {
                             .collection("comments")
                             .doc(a.data.commentId)
                             .delete();
+                          db.collection("post")
+                            .doc(docId)
+                            .update({
+                              comments: comments - 1,
+                              totalScore: totalScore - 0.6,
+                            });
                         }
                       }}
                     >

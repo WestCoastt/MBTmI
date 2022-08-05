@@ -117,13 +117,13 @@ export default function CommentsTab() {
                   variant="dark"
                   style={{ minWidth: "160px" }}
                 >
-                  <Dropdown.Item
+                  {/* <Dropdown.Item
                     onClick={() => {
                       // history.push(`/edit?docId=${a.data.docId}`);
                     }}
                   >
                     Edit
-                  </Dropdown.Item>
+                  </Dropdown.Item> */}
                   <Dropdown.Item
                     onClick={() => {
                       if (window.confirm("댓글을 삭제하시겠습니까?")) {
@@ -137,6 +137,18 @@ export default function CommentsTab() {
                           .collection("comments")
                           .doc(a.data.commentId)
                           .delete();
+
+                        db.collection("post")
+                          .doc(a.data.docId)
+                          .get()
+                          .then((doc) => {
+                            db.collection("post")
+                              .doc(a.data.docId)
+                              .update({
+                                comments: doc.data().comments - 1,
+                                totalScore: doc.data().totalScore - 0.6,
+                              });
+                          });
                       }
                     }}
                   >

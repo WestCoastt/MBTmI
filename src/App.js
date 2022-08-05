@@ -12,6 +12,7 @@ import Search from "./Search";
 import Profile from "./Profile";
 import UserInfo from "./UserInfo";
 import Register from "./Register";
+import Best from "./Best";
 import { db } from "./index.js";
 import {
   getAuth,
@@ -30,6 +31,7 @@ function App() {
   const [nickname, setNickname] = useState("");
   const history = useHistory();
   const [post, setPost] = useState([]);
+  const [best, setBest] = useState([]);
   const auth = getAuth();
   const user = auth.currentUser;
   const provider = new GoogleAuthProvider();
@@ -40,6 +42,7 @@ function App() {
   const [notification, setNotification] = useState();
 
   const [lastVisible, setLastVisible] = useState(null);
+  const oneDay = new Date().getTime() - 24 * 3600 * 1000;
 
   useEffect(() => {
     db.collection("post")
@@ -57,6 +60,17 @@ function App() {
       .limit(1)
       .onSnapshot((snapshot) => {
         setNewPost(snapshot);
+      });
+    db.collection("post")
+      .where("totalScore", ">=", 1)
+      .orderBy("totalScore", "desc")
+      // .startAt(new Date(oneDay))
+      .limit(5)
+      .onSnapshot((snapshot) => {
+        const bestArr = snapshot.docs.map((doc) => ({
+          data: doc.data(),
+        }));
+        setBest(bestArr);
       });
   }, []);
 
@@ -298,6 +312,7 @@ function App() {
         ) : (
           <div className="board">
             <Route exact path="/">
+              <Best best={best}></Best>
               {notification && (
                 <Container className="d-flex justify-content-center">
                   <Button
@@ -316,7 +331,6 @@ function App() {
                   </Button>
                 </Container>
               )}
-
               {create && (
                 <Button
                   variant="primary"
@@ -338,7 +352,6 @@ function App() {
                   <BsPencilSquare size="20"></BsPencilSquare>
                 </Button>
               )}
-
               {post.map((a, i) => (
                 <CreateList
                   key={a.data.docId}
@@ -368,7 +381,6 @@ function App() {
                   ></ReactLoading>
                 </div>
               )}
-
               <div ref={setTarget}></div>
             </Route>
             <Route path="/post">
