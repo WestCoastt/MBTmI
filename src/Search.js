@@ -7,6 +7,7 @@ import {
 import { Form, FormControl, Button, Container } from "react-bootstrap";
 import { db } from "./index";
 import CreateList from "./CreateList";
+import ReactLoading from "react-loading";
 import { BsPencilSquare } from "react-icons/bs";
 
 function Search(props) {
@@ -15,6 +16,10 @@ function Search(props) {
   const [search, setSearch] = useState("");
   const [result, setResult] = useState([]);
   const [noResult, setNoResult] = useState();
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState();
+  const [target, setTarget] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const client = Algoliasearch(
     process.env.REACT_APP_ALGOLIA_APP_ID,
@@ -25,10 +30,16 @@ function Search(props) {
 
   const findData = async () => {
     try {
-      const response = await index.search(search);
+      index.search(search, { hitsPerPage: 10 }).then(({ nbPages }) => {
+        setPages(nbPages);
+      });
+
+      const response = await index.search(search, {
+        hitsPerPage: 10,
+        page: 0,
+      });
 
       const resultArr = response.hits.map((a) => a.objectID);
-      // console.log(resultArr.length);
 
       if (resultArr.length == 0) {
         setNoResult(true);
@@ -42,18 +53,58 @@ function Search(props) {
             }));
             setResult(searchArr);
           });
+        // setPage(page + 1);
       }
     } catch (e) {
       console.log(e);
     }
   };
 
+  const onIntersect = async ([entry], observer) => {
+    if (entry.isIntersecting) {
+      setIsLoading(true);
+      const response = await index.search(search, {
+        hitsPerPage: 10,
+        page: page,
+      });
+      setPage(page + 1);
+
+      const resultArr = response.hits.map((a) => a.objectID);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await db;
+      db.collection("post")
+        .where("docId", "in", resultArr)
+        .onSnapshot((snapshot) => {
+          const nextArr = snapshot.docs.map((doc) => ({
+            data: doc.data(),
+          }));
+          setResult([...result, ...nextArr]);
+        });
+      setIsLoading(false);
+      observer.unobserve(entry.target);
+    }
+  };
+
+  useEffect(() => {
+    let observer;
+    observer = new IntersectionObserver(onIntersect, {
+      threshold: 0.7,
+      rootMargin: "10px 0px",
+    });
+    if (target && page != pages && pages > 1 && result.length >= 1) {
+      observer.observe(target);
+    }
+    return () => observer && observer.disconnect();
+  }, [target, result, pages]);
+
   const enterPress = (e) => {
     if (e.key == "Enter") {
       if (search.length >= 1) {
         e.preventDefault();
         setNoResult(false);
+        setPage(1);
         history.push("/search?q=" + search);
+        setResult([]);
 
         findData();
       } else {
@@ -64,36 +115,17 @@ function Search(props) {
   };
 
   return (
-    // <Navbar className="py-0" fixed="top" bg="dark" expand="lg">
-    //   <Form style={{ width: "100%" }}>
-    //     <FormControl
-    //       type="search"
-    //       placeholder="Search"
-    //       className="me-2 py-2"
-    //       aria-label="Search"
-    //       onChange={(e) => setSearch(e.target.value)}
-    //       onKeyDown={enterPress}
-    //     ></FormControl>
-    //     {/* <button>검색</button> */}
-    //   </Form>
-    // </Navbar>
     <>
       <Form
         style={{
           width: "100%",
           maxWidth: "768px",
-          // position: "fixed",
-          // zIndex: "10",
-          // left: "0",
-          // right: "0",
-          // top: "56px",
-          // margin: "0 auto",
         }}
       >
         <FormControl
           style={{ fontSize: "16px" }}
           type="search"
-          placeholder="Search"
+          placeholder="검색어를 입력해주세요"
           className="py-2"
           aria-label="Search"
           onChange={(e) => setSearch(e.target.value)}
@@ -119,6 +151,21 @@ function Search(props) {
           ></CreateList>
         ))
       )}
+
+      {isLoading && (
+        <div
+          style={{
+            width: "100%",
+            height: "100px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <ReactLoading type="spin" color="#0d6efd" width="36px"></ReactLoading>
+        </div>
+      )}
+      <div ref={setTarget}></div>
 
       {props.create && (
         <Button

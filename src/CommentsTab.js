@@ -20,11 +20,12 @@ export default function CommentsTab() {
     .orderBy("timeStamp");
 
   useEffect(() => {
-    commentList.onSnapshot((snapshot) => {
+    commentList.limit(10).onSnapshot((snapshot) => {
       const commentArr = snapshot.docs.map((doc) => ({
         data: doc.data(),
       }));
       setComments(commentArr);
+      setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
     });
     commentList.onSnapshot((snapshot) => {
       setPages(Math.ceil(snapshot.docs.length / 10));
@@ -152,7 +153,7 @@ export default function CommentsTab() {
                       }
                     }}
                   >
-                    Delete
+                    삭제하기
                   </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>

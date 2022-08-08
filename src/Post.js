@@ -116,7 +116,7 @@ export default function Post() {
                 }
               }}
             >
-              Post
+              등록
             </Button>
           )}
         </div>

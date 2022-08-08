@@ -19,11 +19,12 @@ export default function PostsTab() {
     .orderBy("timeStamp");
 
   useEffect(() => {
-    postList.onSnapshot((snapshot) => {
+    postList.limit(10).onSnapshot((snapshot) => {
       const postArr = snapshot.docs.map((doc) => ({
         data: doc.data(),
       }));
       setPosts(postArr);
+      setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
     });
     postList.onSnapshot((snapshot) => {
       setPages(Math.ceil(snapshot.docs.length / 10));
@@ -117,7 +118,7 @@ export default function PostsTab() {
                   style={{ minWidth: "160px" }}
                 >
                   <Dropdown.Item as={Link} to={`/edit?docId=${a.data.docId}`}>
-                    Edit
+                    수정하기
                   </Dropdown.Item>
                   <Dropdown.Item
                     onClick={() => {
@@ -133,7 +134,7 @@ export default function PostsTab() {
                       }
                     }}
                   >
-                    Delete
+                    삭제하기
                   </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>

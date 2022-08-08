@@ -219,7 +219,7 @@ export default function CreateList(props) {
                   style={{ minWidth: "160px" }}
                 >
                   <Dropdown.Item as={Link} to={`/edit?docId=${props.docId}`}>
-                    Edit
+                    수정하기
                   </Dropdown.Item>
                   <Dropdown.Item
                     onClick={() => {
@@ -240,7 +240,7 @@ export default function CreateList(props) {
                       }
                     }}
                   >
-                    Delete
+                    삭제하기
                   </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>

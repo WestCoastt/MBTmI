@@ -1,5 +1,5 @@
 /* eslint no-restricted-globals: ["off"] */
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Button, Navbar, Container, Dropdown } from "react-bootstrap";
 import { Route, Link } from "react-router-dom";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
@@ -39,7 +39,7 @@ function App() {
   const [create, setCreate] = useState(false);
 
   const [newPost, setNewPost] = useState();
-  const [notification, setNotification] = useState();
+  const [notification, setNotification] = useState(false);
 
   const [lastVisible, setLastVisible] = useState(null);
   const oneDay = new Date().getTime() - 24 * 3600 * 1000;
@@ -75,7 +75,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (scrollY >= 1800) {
+    if (scrollY >= 1500) {
       setNotification(true);
     }
   }, [newPost]);
@@ -84,8 +84,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
 
   const onIntersect = async ([entry], observer) => {
-    if (entry.isIntersecting && !isLoading && post.length % 10 == 0) {
-      observer.unobserve(entry.target);
+    if (entry.isIntersecting) {
       setIsLoading(true);
       await new Promise((resolve) => setTimeout(resolve, 1000));
       await db
@@ -101,21 +100,20 @@ function App() {
           setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
         });
       setIsLoading(false);
-      observer.observe(entry.target);
+      observer.unobserve(entry.target);
     }
   };
 
   useEffect(() => {
-    let observer;
-    if (target) {
-      observer = new IntersectionObserver(onIntersect, {
-        threshold: 0.7,
-        rootMargin: "10px 0px",
-      });
+    const observer = new IntersectionObserver(onIntersect, {
+      threshold: 0.7,
+      rootMargin: "10px 0px",
+    });
+    if (target && post.length % 10 == 0 && lastVisible) {
       observer.observe(target);
     }
     return () => observer && observer.disconnect();
-  }, [lastVisible, target]);
+  }, [target, lastVisible, post]);
 
   onAuthStateChanged(auth, (user) => {
     if (user) {

@@ -31,7 +31,10 @@ export default function Best(props) {
           <div style={{ overflow: "hidden" }}>
             <Container className={"head-container px-0 " + transition}>
               {props.best.map((a, i) => (
-                <div className="d-flex justify-content-between">
+                <div
+                  key={a.data.docId}
+                  className="d-flex justify-content-between"
+                >
                   <p className="best-number">{i + 1}</p>
                   <Link
                     to={`/comments?docId=${a.data.docId}`}

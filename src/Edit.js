@@ -115,7 +115,7 @@ export default function Edit() {
                 }
               }}
             >
-              Edit
+              완료
             </Button>
           )}
         </div>

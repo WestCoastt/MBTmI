@@ -6,6 +6,7 @@ import {
   Dropdown,
   OverlayTrigger,
   Tooltip,
+  Container,
 } from "react-bootstrap";
 import moment from "moment";
 import "moment/locale/ko";
@@ -53,6 +54,8 @@ export default function Comments() {
   const [time, setTime] = useState();
   const koreanTime = moment(timeStamp * 1000).format("llll");
   const docId = urlSearch.get("docId");
+  const [edit, setEdit] = useState();
+  const [editText, setEditText] = useState("");
 
   db.collection("post")
     .doc(docId)
@@ -253,7 +256,7 @@ export default function Comments() {
                       history.push(`/edit?docId=${docId}`);
                     }}
                   >
-                    Edit
+                    수정하기
                   </Dropdown.Item>
                   <Dropdown.Item
                     onClick={() => {
@@ -272,36 +275,11 @@ export default function Comments() {
                       }
                     }}
                   >
-                    Delete
+                    삭제하기
                   </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
             )}
-
-            {/* <div
-            style={{
-              fontSize: "16px",
-              marginBottom: "10px",
-              display: "flex",
-              justifyContent: "space-between",
-            }}
-          >
-            <div style={{ display: "flex" }}>
-              <FaUserCircle size="36" color="#a0aec0"></FaUserCircle>
-              <Link className="nickname">{nickname}</Link>
-
-              <OverlayTrigger
-                placement="right"
-                overlay={<Tooltip id="button-tooltip-2">{koreanTime}</Tooltip>}
-              >
-                <Link
-                  to={`/comments?docId=$props.docId}`}
-                  className="timestamp"
-                >
-                  {time}
-                </Link>
-              </OverlayTrigger>
-            </div> */}
           </div>
         </Card.Header>
         <Card.Body className="py-1">
@@ -564,7 +542,7 @@ export default function Comments() {
                   }
                 }}
               >
-                Comment
+                댓글 달기
               </Button>
             ) : (
               <Button
@@ -596,138 +574,213 @@ export default function Comments() {
             margin: "3px 0px",
           }}
         >
-          <Card.Body>
-            <div
-              style={{
-                marginBottom: "4px",
-                display: "flex",
-                justifyContent: "space-between",
-              }}
-            >
-              {/* <div style={{ display: "flex" }}>
-                <FaUserCircle size="36" color="#a0aec0"></FaUserCircle>
-                <Link className="nickname">{a.data.nickname}</Link>
-                <span>{a.data.mbti}</span>
-              </div> */}
+          {i == edit ? (
+            <Container className="d-flex flex-column align-items-end my-2">
+              <Editor
+                apiKey={tinymcekey}
+                value={editText}
+                onInit={(evt, editor) => (editorRef.current = editor)}
+                outputFormat="text"
+                onEditorChange={(newText) => setEditText(newText)}
+                init={{
+                  // max_height: 180,
+                  height: 10,
+                  width: "100%",
+                  language: "ko_KR",
+                  placeholder: "댓글을 입력하세요.",
+                  menubar: false,
+                  branding: false,
+                  statusbar: false,
+                  contextmenu: false,
+                  default_link_target: "_blank",
+                  plugins: ["link", "emoticons", "autoresize", "autolink"],
+                  toolbar: "| emoticons link |",
+                  extended_valid_elements: "a[href|target=_blank]",
+                  autoresize_on_init: false,
+                  content_style:
+                    "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
+                }}
+              ></Editor>
+              <div className="mt-2">
+                <Button
+                  disabled={editText.length == 0 && true}
+                  type="submit"
+                  id="comment"
+                  className="rounded-pill me-1"
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    db.collection("post")
+                      .doc(docId)
+                      .collection("comment")
+                      .doc(a.data.commentId)
+                      .update({
+                        comment: editText,
+                      });
 
-              <div style={{ display: "flex" }}>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <FaUserCircle
-                    size="36"
-                    color="#a0aec0"
-                    style={{ margin: "0 7px" }}
-                  ></FaUserCircle>
+                    db.collection("user-info")
+                      .doc(uid)
+                      .collection("comments")
+                      .doc(a.data.commentId)
+                      .update({
+                        comment: editText,
+                      });
+                    setEdit();
+                  }}
+                >
+                  완료
+                </Button>
+                <Button
+                  type="submit"
+                  id="comment"
+                  className="rounded-pill"
+                  variant="outline-dark"
+                  size="sm"
+                  onClick={() => {
+                    setEdit();
+                  }}
+                >
+                  취소
+                </Button>
+              </div>
+            </Container>
+          ) : (
+            <Card.Body>
+              <div
+                style={{
+                  marginBottom: "4px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                }}
+              >
+                <div style={{ display: "flex" }}>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <FaUserCircle
+                      size="36"
+                      color="#a0aec0"
+                      style={{ margin: "0 7px" }}
+                    ></FaUserCircle>
 
-                  {Object.entries(palette).map(
-                    ([key, value]) =>
-                      a.data.mbti == key && (
-                        <p
-                          className="badge"
-                          style={{
-                            background: `${value}`,
-                          }}
-                        >
-                          {a.data.mbti}
-                        </p>
-                      )
-                  )}
+                    {Object.entries(palette).map(
+                      ([key, value]) =>
+                        a.data.mbti == key && (
+                          <p
+                            className="badge"
+                            style={{
+                              background: `${value}`,
+                            }}
+                          >
+                            {a.data.mbti}
+                          </p>
+                        )
+                    )}
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <Link className="nickname">{a.data.nickname}</Link>
+
+                    <OverlayTrigger
+                      placement="right"
+                      overlay={
+                        <Tooltip id="button-tooltip-2">
+                          {moment(a.data.timeStamp.seconds * 1000).format(
+                            "llll"
+                          )}
+                        </Tooltip>
+                      }
+                    >
+                      <span className="timestamp">
+                        {currentTime - a.data.timeStamp.seconds > year
+                          ? Math.floor(
+                              (currentTime - a.data.timeStamp.seconds) / year
+                            ) + "년 전"
+                          : currentTime - a.data.timeStamp.seconds > month
+                          ? Math.floor(
+                              (currentTime - a.data.timeStamp.seconds) / month
+                            ) + "개월 전"
+                          : currentTime - a.data.timeStamp.seconds > day
+                          ? Math.floor(
+                              (currentTime - a.data.timeStamp.seconds) / day
+                            ) + "일 전"
+                          : currentTime - a.data.timeStamp.seconds > hour
+                          ? Math.floor(
+                              (currentTime - a.data.timeStamp.seconds) / hour
+                            ) + "시간 전"
+                          : currentTime - a.data.timeStamp.seconds > min
+                          ? Math.floor(
+                              (currentTime - a.data.timeStamp.seconds) / min
+                            ) + "분 전"
+                          : "방금 전"}
+                      </span>
+                    </OverlayTrigger>
+                  </div>
                 </div>
 
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <Link className="nickname">{a.data.nickname}</Link>
+                {user != null && uid == a.data.uid && (
+                  <Dropdown>
+                    <Dropdown.Toggle
+                      size="sm"
+                      variant="white"
+                      style={{ lineHeight: "20px" }}
+                      className="more shadow-none rounded-pill px-1 py-1"
+                    >
+                      <FiMoreHorizontal
+                        size="23"
+                        color="#6E6E6E"
+                      ></FiMoreHorizontal>
+                    </Dropdown.Toggle>
 
-                  <OverlayTrigger
-                    placement="right"
-                    overlay={
-                      <Tooltip id="button-tooltip-2">
-                        {moment(a.data.timeStamp.seconds * 1000).format("llll")}
-                      </Tooltip>
-                    }
-                  >
-                    <span className="timestamp">
-                      {currentTime - a.data.timeStamp.seconds > year
-                        ? Math.floor(
-                            (currentTime - a.data.timeStamp.seconds) / year
-                          ) + "년 전"
-                        : currentTime - a.data.timeStamp.seconds > month
-                        ? Math.floor(
-                            (currentTime - a.data.timeStamp.seconds) / month
-                          ) + "개월 전"
-                        : currentTime - a.data.timeStamp.seconds > day
-                        ? Math.floor(
-                            (currentTime - a.data.timeStamp.seconds) / day
-                          ) + "일 전"
-                        : currentTime - a.data.timeStamp.seconds > hour
-                        ? Math.floor(
-                            (currentTime - a.data.timeStamp.seconds) / hour
-                          ) + "시간 전"
-                        : currentTime - a.data.timeStamp.seconds > min
-                        ? Math.floor(
-                            (currentTime - a.data.timeStamp.seconds) / min
-                          ) + "분 전"
-                        : "방금 전"}
-                    </span>
-                  </OverlayTrigger>
-                </div>
+                    <Dropdown.Menu
+                      align="end"
+                      variant="dark"
+                      style={{ minWidth: "120px", fontSize: "18px" }}
+                    >
+                      <Dropdown.Item
+                        onClick={() => {
+                          setEditText(a.data.comment);
+                          setEdit(i);
+                        }}
+                      >
+                        수정하기
+                      </Dropdown.Item>
+                      <Dropdown.Item
+                        onClick={() => {
+                          if (window.confirm("댓글을 삭제하시겠습니까?")) {
+                            db.collection("post")
+                              .doc(docId)
+                              .collection("comment")
+                              .doc(a.data.commentId)
+                              .delete();
+                            db.collection("user-info")
+                              .doc(uid)
+                              .collection("comments")
+                              .doc(a.data.commentId)
+                              .delete();
+                            db.collection("post")
+                              .doc(docId)
+                              .update({
+                                comments: comments - 1,
+                                totalScore: totalScore - 0.6,
+                              });
+                          }
+                        }}
+                      >
+                        삭제하기
+                      </Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown>
+                )}
               </div>
 
-              {user != null && uid == a.data.uid && (
-                <Dropdown>
-                  <Dropdown.Toggle
-                    size="sm"
-                    variant="white"
-                    style={{ lineHeight: "20px" }}
-                    className="more shadow-none rounded-pill px-1 py-1"
-                  >
-                    <FiMoreHorizontal
-                      size="23"
-                      color="#6E6E6E"
-                    ></FiMoreHorizontal>
-                  </Dropdown.Toggle>
-
-                  <Dropdown.Menu
-                    align="end"
-                    variant="dark"
-                    style={{ minWidth: "120px", fontSize: "18px" }}
-                  >
-                    <Dropdown.Item onClick={() => {}}>Edit</Dropdown.Item>
-                    <Dropdown.Item
-                      onClick={() => {
-                        if (window.confirm("댓글을 삭제하시겠습니까?")) {
-                          db.collection("post")
-                            .doc(docId)
-                            .collection("comment")
-                            .doc(a.data.commentId)
-                            .delete();
-                          db.collection("user-info")
-                            .doc(uid)
-                            .collection("comments")
-                            .doc(a.data.commentId)
-                            .delete();
-                          db.collection("post")
-                            .doc(docId)
-                            .update({
-                              comments: comments - 1,
-                              totalScore: totalScore - 0.6,
-                            });
-                        }
-                      }}
-                    >
-                      Delete
-                    </Dropdown.Item>
-                  </Dropdown.Menu>
-                </Dropdown>
-              )}
-            </div>
-
-            <div
-              style={{
-                margin: "0 3px",
-              }}
-            >
-              {parse(a.data.comment)}
-            </div>
-          </Card.Body>
+              <div
+                style={{
+                  margin: "0 3px",
+                }}
+              >
+                {parse(a.data.comment)}
+              </div>
+            </Card.Body>
+          )}
         </Card>
       ))}
     </>
