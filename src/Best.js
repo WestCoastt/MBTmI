@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Container, Dropdown, Badge, Button } from "react-bootstrap";
+import { Container, Dropdown, Button } from "react-bootstrap";
 import { FaRegComment } from "react-icons/fa";
 
 export default function Best(props) {

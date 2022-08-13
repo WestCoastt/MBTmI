@@ -43,6 +43,7 @@ export default function UserInfo() {
   const [month, setMonth] = useState("");
   const [date, setDate] = useState("");
   const [gender, setGender] = useState("");
+  const [color, setColor] = useState("");
   const birthDay = `${year}-${month}-${date}`;
 
   //제로베이스 리액트 강의 (리스트와 Key/폼과 이벤트제어하기) 8.폼 - 다중 입력 다루기
@@ -73,7 +74,7 @@ export default function UserInfo() {
   // });
 
   useEffect(() => {
-    let regExp = /^[a-zA-Z가-힣0-9_]{2,12}$/;
+    let regExp = /^[a-zA-Z가-힣0-9_]{2,16}$/;
     if (regExp.test(nickname) == true) {
       db.collection("user-info")
         .where("nickname", "!=", nickname)
@@ -92,9 +93,19 @@ export default function UserInfo() {
           });
         });
     } else if (regExp.test(nickname) == false) {
-      setNickCheck("2~12자의 한글, 영문, 숫자, 언더바( _ )만 가능");
+      setNickCheck("2~16자의 한글, 영문, 숫자, 언더바( _ )만 가능");
     }
   }, [nickname]);
+
+  useEffect(() => {
+    if (nickCheck == "사용 가능한 닉네임입니다") {
+      setColor("#006eff");
+    } else if (nickCheck == "이미 사용중 입니다") {
+      setColor("red");
+    } else {
+      setColor("inherit");
+    }
+  }, [nickCheck]);
 
   //코멘트 collection에서 where 닉네임 == 닉네임으로 업데이트
   // db.collection("post")
@@ -122,29 +133,22 @@ export default function UserInfo() {
             <Col sm="7" className="pe-4">
               <Form.Control
                 className="ms-1"
+                style={{ fontSize: "18px" }}
                 type="text"
                 placeholder="닉네임을 입력하세요"
                 autoComplete="off"
                 minLength="2"
-                maxLength="12"
+                maxLength="16"
                 onChange={(e) => setNickname(e.target.value)}
               />
             </Col>
             <span
-              style={
-                nickCheck == "이미 사용중 입니다"
-                  ? {
-                      color: "red",
-                      fontSize: "15px",
-                      textAlign: "center",
-                      margin: "10px 20px",
-                    }
-                  : {
-                      fontSize: "15px",
-                      textAlign: "center",
-                      margin: "10px 20px",
-                    }
-              }
+              style={{
+                fontSize: "15px",
+                textAlign: "center",
+                margin: "10px 20px",
+                color: color,
+              }}
             >
               {nickCheck}
             </span>

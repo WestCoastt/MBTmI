@@ -78,9 +78,11 @@ export default function CommentsTab() {
       <ListGroup variant="flush" style={{ marginTop: "10px", height: "500px" }}>
         {comments.map((a, i) => (
           <ListGroup.Item key={a.data.commentId}>
-            {/* <div style={{ display: "flex", justifyContent: "space-between" }}> */}
-
-            <Link to={`/comments?docId=${a.data.docId}`} className="tab-items">
+            <Link
+              to={`/comments?docId=${a.data.docId}`}
+              className="tab-items"
+              style={{ overflow: "hidden" }}
+            >
               <span
                 className="posts"
                 style={{ lineHeight: "36px", width: "70%" }}
@@ -118,13 +120,6 @@ export default function CommentsTab() {
                   variant="dark"
                   style={{ minWidth: "160px" }}
                 >
-                  {/* <Dropdown.Item
-                    onClick={() => {
-                      // history.push(`/edit?docId=${a.data.docId}`);
-                    }}
-                  >
-                    Edit
-                  </Dropdown.Item> */}
                   <Dropdown.Item
                     onClick={() => {
                       if (window.confirm("댓글을 삭제하시겠습니까?")) {

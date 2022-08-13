@@ -24,6 +24,7 @@ import { Editor } from "@tinymce/tinymce-react";
 import { FiHeart, FiMoreHorizontal, FiShare2 } from "react-icons/fi";
 import { FaRegComment, FaUserCircle } from "react-icons/fa";
 import { useHistory, Link } from "react-router-dom";
+import { useId } from "react";
 
 export default function Comments() {
   const uid = window.localStorage.getItem("uid");
@@ -56,16 +57,25 @@ export default function Comments() {
   const docId = urlSearch.get("docId");
   const [edit, setEdit] = useState();
   const [editText, setEditText] = useState("");
+  const [reply, setReply] = useState();
+  const [replyText, setReplyText] = useState("");
+  const [replies, setReplies] = useState([]);
+  const [reEdit, setReEdit] = useState();
+  const [reEditText, setReEditText] = useState("");
 
   db.collection("post")
     .doc(docId)
     .get()
     .then((doc) => {
-      setCnt(doc.data().likes);
-      setComments(doc.data().comments);
-      setTotalScore(doc.data().totalScore);
+      if (doc.exists) {
+        setCnt(doc.data().likes);
+        setComments(doc.data().comments);
+        setTotalScore(doc.data().totalScore);
+      }
+      // setCnt(doc.data().likes);
+      // setComments(doc.data().comments);
+      // setTotalScore(doc.data().totalScore);
     });
-  // .catch(() => {});
 
   useEffect(() => {
     db.collection("post")
@@ -187,6 +197,14 @@ export default function Comments() {
     });
   }, [mbti]);
 
+  const checkLike = (arr, color) => {
+    if (arr != null && arr.includes(uid)) {
+      return "#FF6C85";
+    } else {
+      return color;
+    }
+  };
+
   return (
     <>
       <Card
@@ -223,7 +241,9 @@ export default function Comments() {
               </div>
 
               <div style={{ display: "flex", flexDirection: "column" }}>
-                <Link className="nickname">{nickname}</Link>
+                <Link to="" className="nickname">
+                  {nickname}
+                </Link>
 
                 <OverlayTrigger
                   placement="right"
@@ -292,13 +312,6 @@ export default function Comments() {
         >
           <div
             className="footer"
-            style={{
-              width: "90px",
-              display: "flex",
-              cursor: "pointer",
-              height: "32px",
-              borderRadius: "3px",
-            }}
             onClick={() => {
               {
                 user != null
@@ -357,14 +370,14 @@ export default function Comments() {
             >
               <FiHeart
                 size="18"
-                color="#FF6C85"
+                color={like == true ? "#FF6C85" : "#777777"}
                 fill={like == true ? "#FF6C85" : "none"}
               ></FiHeart>
               <span
                 style={{
                   maxWidth: "48px",
                   lineHeight: "16px",
-                  color: "#FF6C85",
+                  color: like == true ? "#FF6C85" : "#777777",
                   textAlign: "center",
                 }}
               >
@@ -373,7 +386,10 @@ export default function Comments() {
             </div>
           </div>
 
-          <div className="footer" style={{ background: "none" }}>
+          <div
+            className="footer"
+            style={{ background: "none", cursor: "default" }}
+          >
             <div
               style={{
                 width: "100%",
@@ -399,13 +415,7 @@ export default function Comments() {
 
           <div
             className="footer"
-            style={{
-              width: "66px",
-              display: "flex",
-              cursor: "pointer",
-              height: "32px",
-              borderRadius: "3px",
-            }}
+            style={{ width: "66px" }}
             onClick={() => {
               if (navigator.share) {
                 navigator
@@ -495,7 +505,7 @@ export default function Comments() {
               {/* 댓글 {comment.length} */}
               댓글 {comments}
             </span>
-            {user != null ? (
+            {user ? (
               <Button
                 disabled={text.length == 0 && true}
                 type="submit"
@@ -518,6 +528,9 @@ export default function Comments() {
                           nickname: commentNickname,
                           mbti: commentUserMbti,
                           comment: text,
+                          likedUser: [],
+                          likes: 0,
+                          reply: 0,
                           timeStamp: Timestamp.now(),
                         });
                     db.collection("user-info")
@@ -564,228 +577,942 @@ export default function Comments() {
         </Card.Header>
       </Card>
 
-      {comment.map((a, i) => (
+      {comment.length > 0 && (
         <Card
-          key={a.data.commentId}
           style={{
             width: "100%",
             minWidth: "360px",
             maxWidth: "768px",
             margin: "3px 0px",
+            padding: "15px 0px 10px 0px",
           }}
         >
-          {i == edit ? (
-            <Container className="d-flex flex-column align-items-end my-2">
-              <Editor
-                apiKey={tinymcekey}
-                value={editText}
-                onInit={(evt, editor) => (editorRef.current = editor)}
-                outputFormat="text"
-                onEditorChange={(newText) => setEditText(newText)}
-                init={{
-                  // max_height: 180,
-                  height: 10,
-                  width: "100%",
-                  language: "ko_KR",
-                  placeholder: "댓글을 입력하세요.",
-                  menubar: false,
-                  branding: false,
-                  statusbar: false,
-                  contextmenu: false,
-                  default_link_target: "_blank",
-                  plugins: ["link", "emoticons", "autoresize", "autolink"],
-                  toolbar: "| emoticons link |",
-                  extended_valid_elements: "a[href|target=_blank]",
-                  autoresize_on_init: false,
-                  content_style:
-                    "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
-                }}
-              ></Editor>
-              <div className="mt-2">
-                <Button
-                  disabled={editText.length == 0 && true}
-                  type="submit"
-                  id="comment"
-                  className="rounded-pill me-1"
-                  variant="primary"
-                  size="sm"
-                  onClick={() => {
-                    db.collection("post")
-                      .doc(docId)
-                      .collection("comment")
-                      .doc(a.data.commentId)
-                      .update({
-                        comment: editText,
-                      });
-
-                    db.collection("user-info")
-                      .doc(uid)
-                      .collection("comments")
-                      .doc(a.data.commentId)
-                      .update({
-                        comment: editText,
-                      });
-                    setEdit();
-                  }}
-                >
-                  완료
-                </Button>
-                <Button
-                  type="submit"
-                  id="comment"
-                  className="rounded-pill"
-                  variant="outline-dark"
-                  size="sm"
-                  onClick={() => {
-                    setEdit();
-                  }}
-                >
-                  취소
-                </Button>
-              </div>
-            </Container>
-          ) : (
-            <Card.Body>
-              <div
-                style={{
-                  marginBottom: "4px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                }}
-              >
+          {comment.map((a, i) => (
+            <>
+              <Container key={a.data.commentId} className="mt-1 comment">
                 <div style={{ display: "flex" }}>
-                  <div style={{ display: "flex", flexDirection: "column" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      marginTop: "6px",
+                    }}
+                  >
                     <FaUserCircle
-                      size="36"
+                      size="32"
                       color="#a0aec0"
                       style={{ margin: "0 7px" }}
                     ></FaUserCircle>
 
-                    {Object.entries(palette).map(
-                      ([key, value]) =>
-                        a.data.mbti == key && (
-                          <p
-                            className="badge"
-                            style={{
-                              background: `${value}`,
-                            }}
-                          >
-                            {a.data.mbti}
-                          </p>
-                        )
-                    )}
+                    {a.data.mbti &&
+                      Object.entries(palette).map(
+                        ([key, value]) =>
+                          a.data.mbti == key && (
+                            <p
+                              key={a.data.commentId}
+                              className="badge"
+                              style={{
+                                background: `${value}`,
+                                width: "40px",
+                                fontSize: "11px",
+                                marginLeft: "3px",
+                              }}
+                            >
+                              {a.data.mbti}
+                            </p>
+                          )
+                      )}
                   </div>
-
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    <Link className="nickname">{a.data.nickname}</Link>
-
-                    <OverlayTrigger
-                      placement="right"
-                      overlay={
-                        <Tooltip id="button-tooltip-2">
-                          {moment(a.data.timeStamp.seconds * 1000).format(
-                            "llll"
-                          )}
-                        </Tooltip>
-                      }
+                  {i == edit ? (
+                    <Container
+                      key={a.data.commentId}
+                      className="d-flex flex-column align-items-end my-1 px-1"
                     >
-                      <span className="timestamp">
-                        {currentTime - a.data.timeStamp.seconds > year
-                          ? Math.floor(
-                              (currentTime - a.data.timeStamp.seconds) / year
-                            ) + "년 전"
-                          : currentTime - a.data.timeStamp.seconds > month
-                          ? Math.floor(
-                              (currentTime - a.data.timeStamp.seconds) / month
-                            ) + "개월 전"
-                          : currentTime - a.data.timeStamp.seconds > day
-                          ? Math.floor(
-                              (currentTime - a.data.timeStamp.seconds) / day
-                            ) + "일 전"
-                          : currentTime - a.data.timeStamp.seconds > hour
-                          ? Math.floor(
-                              (currentTime - a.data.timeStamp.seconds) / hour
-                            ) + "시간 전"
-                          : currentTime - a.data.timeStamp.seconds > min
-                          ? Math.floor(
-                              (currentTime - a.data.timeStamp.seconds) / min
-                            ) + "분 전"
-                          : "방금 전"}
-                      </span>
-                    </OverlayTrigger>
-                  </div>
-                </div>
-
-                {user != null && uid == a.data.uid && (
-                  <Dropdown>
-                    <Dropdown.Toggle
-                      size="sm"
-                      variant="white"
-                      style={{ lineHeight: "20px" }}
-                      className="more shadow-none rounded-pill px-1 py-1"
-                    >
-                      <FiMoreHorizontal
-                        size="23"
-                        color="#6E6E6E"
-                      ></FiMoreHorizontal>
-                    </Dropdown.Toggle>
-
-                    <Dropdown.Menu
-                      align="end"
-                      variant="dark"
-                      style={{ minWidth: "120px", fontSize: "18px" }}
-                    >
-                      <Dropdown.Item
-                        onClick={() => {
-                          setEditText(a.data.comment);
-                          setEdit(i);
+                      <Editor
+                        apiKey={tinymcekey}
+                        value={editText}
+                        onInit={(evt, editor) => (editorRef.current = editor)}
+                        outputFormat="text"
+                        onEditorChange={(newText) => setEditText(newText)}
+                        init={{
+                          // max_height: 180,
+                          height: 10,
+                          width: "100%",
+                          language: "ko_KR",
+                          placeholder: "댓글을 입력하세요.",
+                          menubar: false,
+                          branding: false,
+                          statusbar: false,
+                          contextmenu: false,
+                          default_link_target: "_blank",
+                          plugins: [
+                            "link",
+                            "emoticons",
+                            "autoresize",
+                            "autolink",
+                          ],
+                          toolbar: "| emoticons link |",
+                          extended_valid_elements: "a[href|target=_blank]",
+                          autoresize_on_init: false,
+                          content_style:
+                            "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
                         }}
-                      >
-                        수정하기
-                      </Dropdown.Item>
-                      <Dropdown.Item
-                        onClick={() => {
-                          if (window.confirm("댓글을 삭제하시겠습니까?")) {
+                      ></Editor>
+                      <div className="mt-2">
+                        <Button
+                          disabled={editText.length == 0 && true}
+                          type="submit"
+                          id="comment"
+                          className="rounded-pill me-1"
+                          variant="primary"
+                          size="sm"
+                          onClick={() => {
                             db.collection("post")
                               .doc(docId)
                               .collection("comment")
                               .doc(a.data.commentId)
-                              .delete();
+                              .update({
+                                comment: editText,
+                              });
+
                             db.collection("user-info")
                               .doc(uid)
                               .collection("comments")
                               .doc(a.data.commentId)
-                              .delete();
-                            db.collection("post")
-                              .doc(docId)
                               .update({
-                                comments: comments - 1,
-                                totalScore: totalScore - 0.6,
+                                comment: editText,
                               });
-                          }
+                            setEdit();
+                          }}
+                        >
+                          완료
+                        </Button>
+                        <Button
+                          type="submit"
+                          id="comment"
+                          className="rounded-pill"
+                          variant="outline-dark"
+                          size="sm"
+                          onClick={() => {
+                            setEdit();
+                          }}
+                        >
+                          취소
+                        </Button>
+                      </div>
+                    </Container>
+                  ) : (
+                    <Container className="px-0">
+                      {a.data.comment ? (
+                        <Card.Body
+                          className="mx-1 pt-0 pb-1 px-2"
+                          style={{ background: "#E9EBEE", borderRadius: "5px" }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                            }}
+                          >
+                            <div style={{ display: "flex" }}>
+                              <div
+                                style={{
+                                  display: "flex",
+                                }}
+                              >
+                                <Link
+                                  to=""
+                                  className="nickname"
+                                  style={{
+                                    fontSize: "14px",
+                                    marginLeft: "2px",
+                                    lineHeight: "30px",
+                                  }}
+                                >
+                                  {a.data.nickname}
+                                </Link>
+
+                                <OverlayTrigger
+                                  placement={
+                                    window.innerWidth < 576 ? "top" : "right"
+                                  }
+                                  overlay={
+                                    <Tooltip id="button-tooltip-2">
+                                      {moment(
+                                        a.data.timeStamp.seconds * 1000
+                                      ).format("llll")}
+                                    </Tooltip>
+                                  }
+                                >
+                                  <span
+                                    className="timestamp mx-2"
+                                    style={{
+                                      fontSize: "12px",
+                                      lineHeight: "36px",
+                                    }}
+                                  >
+                                    {currentTime - a.data.timeStamp.seconds >
+                                    year
+                                      ? Math.floor(
+                                          (currentTime -
+                                            a.data.timeStamp.seconds) /
+                                            year
+                                        ) + "년 전"
+                                      : currentTime - a.data.timeStamp.seconds >
+                                        month
+                                      ? Math.floor(
+                                          (currentTime -
+                                            a.data.timeStamp.seconds) /
+                                            month
+                                        ) + "개월 전"
+                                      : currentTime - a.data.timeStamp.seconds >
+                                        day
+                                      ? Math.floor(
+                                          (currentTime -
+                                            a.data.timeStamp.seconds) /
+                                            day
+                                        ) + "일 전"
+                                      : currentTime - a.data.timeStamp.seconds >
+                                        hour
+                                      ? Math.floor(
+                                          (currentTime -
+                                            a.data.timeStamp.seconds) /
+                                            hour
+                                        ) + "시간 전"
+                                      : currentTime - a.data.timeStamp.seconds >
+                                        min
+                                      ? Math.floor(
+                                          (currentTime -
+                                            a.data.timeStamp.seconds) /
+                                            min
+                                        ) + "분 전"
+                                      : "방금 전"}
+                                  </span>
+                                </OverlayTrigger>
+                              </div>
+                            </div>
+
+                            {user != null && uid == a.data.uid && (
+                              <Dropdown>
+                                <Dropdown.Toggle
+                                  size="sm"
+                                  variant="white"
+                                  style={{ lineHeight: "20px" }}
+                                  className="more shadow-none rounded-pill px-1 py-1"
+                                >
+                                  <FiMoreHorizontal
+                                    size="23"
+                                    color="#6E6E6E"
+                                  ></FiMoreHorizontal>
+                                </Dropdown.Toggle>
+
+                                <Dropdown.Menu
+                                  align="end"
+                                  variant="dark"
+                                  style={{
+                                    minWidth: "120px",
+                                    fontSize: "18px",
+                                  }}
+                                >
+                                  <Dropdown.Item
+                                    onClick={() => {
+                                      setEditText(a.data.comment);
+                                      setEdit(i);
+                                    }}
+                                  >
+                                    수정하기
+                                  </Dropdown.Item>
+                                  <Dropdown.Item
+                                    onClick={() => {
+                                      const doc = db
+                                        .collection("post")
+                                        .doc(docId)
+                                        .collection("comment")
+                                        .doc(a.data.commentId);
+                                      if (
+                                        window.confirm(
+                                          "댓글을 삭제하시겠습니까?"
+                                        )
+                                      ) {
+                                        if (a.data.reply == 0) {
+                                          doc.delete();
+                                        } else {
+                                          doc.update({
+                                            comment: null,
+                                            mbti: null,
+                                            nickname: null,
+                                            uid: null,
+                                          });
+                                        }
+                                        db.collection("user-info")
+                                          .doc(uid)
+                                          .collection("comments")
+                                          .doc(a.data.commentId)
+                                          .delete();
+                                        db.collection("post")
+                                          .doc(docId)
+                                          .update({
+                                            comments: comments - 1,
+                                            totalScore: totalScore - 0.6,
+                                          });
+                                      }
+                                    }}
+                                  >
+                                    삭제하기
+                                  </Dropdown.Item>
+                                </Dropdown.Menu>
+                              </Dropdown>
+                            )}
+                          </div>
+
+                          <div
+                            className="comment-content"
+                            style={{
+                              margin: "0 3px",
+                            }}
+                          >
+                            {parse(a.data.comment)}
+                          </div>
+                        </Card.Body>
+                      ) : (
+                        <Card.Body
+                          className="mx-1 px-2 py-2"
+                          style={{ background: "#E9EBEE", borderRadius: "5px" }}
+                        >
+                          <p style={{ color: "gray", margin: "0" }}>
+                            작성자에 의해 삭제된 댓글입니다.
+                          </p>
+                        </Card.Body>
+                      )}
+                      <Card.Footer
+                        className="text-muted d-flex justify-content-start px-0 py-0 mt-0 mb-0"
+                        style={{
+                          background: "inherit",
+                          height: "30px",
+                          border: "none",
                         }}
                       >
-                        삭제하기
-                      </Dropdown.Item>
-                    </Dropdown.Menu>
-                  </Dropdown>
-                )}
-              </div>
+                        <div
+                          className="comment-footer"
+                          style={{
+                            display: "flex",
+                            cursor: "pointer",
+                            borderRadius: "3px",
+                          }}
+                          onClick={() => {
+                            {
+                              user != null
+                                ? noInfo == false
+                                  ? a.data.likedUser != null &&
+                                    a.data.likedUser.includes(uid) == false
+                                    ? db
+                                        .collection("post")
+                                        .doc(docId)
+                                        .collection("comment")
+                                        .doc(a.data.commentId)
+                                        .update({
+                                          likes: a.data.likes + 1,
+                                          likedUser: arrayUnion(uid),
+                                        })
+                                    : db
+                                        .collection("post")
+                                        .doc(docId)
+                                        .collection("comment")
+                                        .doc(a.data.commentId)
+                                        .update({
+                                          likes: a.data.likes - 1,
+                                          likedUser: arrayRemove(uid),
+                                        })
+                                  : history.push("/user?uid=" + user.uid)
+                                : setModalShow(true);
+                            }
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: "100%",
+                              margin: "auto",
+                              display: "flex",
+                              justifyContent: "space-evenly",
+                            }}
+                          >
+                            <FiHeart
+                              size="14"
+                              color={checkLike(a.data.likedUser, "#777777")}
+                              fill={checkLike(a.data.likedUser, "none")}
+                            ></FiHeart>
 
-              <div
-                style={{
-                  margin: "0 3px",
-                }}
-              >
-                {parse(a.data.comment)}
-              </div>
-            </Card.Body>
-          )}
+                            <span
+                              style={{
+                                color: checkLike(a.data.likedUser, "#777777"),
+                              }}
+                            >
+                              {a.data.likes}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="comment-footer" to={`/`}>
+                          <div
+                            style={{
+                              width: "100%",
+                              margin: "auto",
+                              display: "flex",
+                              justifyContent: "space-evenly",
+                            }}
+                            onClick={() => {
+                              {
+                                reply != null
+                                  ? reply == i
+                                    ? setReply()
+                                    : setReply(i)
+                                  : setReply(i);
+                              }
+                              db.collection("post")
+                                .doc(docId)
+                                .collection("comment")
+                                .doc(a.data.commentId)
+                                .collection("reply")
+                                .orderBy("timeStamp", "asc")
+                                .onSnapshot((snapshot) => {
+                                  const replyArr = snapshot.docs.map((doc) => ({
+                                    data: doc.data(),
+                                  }));
+                                  setReplies(replyArr);
+                                });
+                            }}
+                          >
+                            <FaRegComment
+                              size="14"
+                              color="#777777"
+                            ></FaRegComment>
+                            <span style={{ color: "#777777" }}>
+                              {a.data.reply}
+                            </span>
+                          </div>
+                        </div>
+                      </Card.Footer>
+                    </Container>
+                  )}
+                </div>
+              </Container>
+
+              {i == reply && (
+                <>
+                  {replies.map((r, i) => (
+                    <Container key={r.data.replyId} className="reply mt-1">
+                      <div style={{ display: "flex" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            marginTop: "6px",
+                          }}
+                        >
+                          <FaUserCircle
+                            size="32"
+                            color="#a0aec0"
+                            style={{ margin: "0 7px" }}
+                          ></FaUserCircle>
+
+                          {Object.entries(palette).map(
+                            ([key, value]) =>
+                              r.data.mbti == key && (
+                                <p
+                                  key={r.data.replyId}
+                                  className="badge"
+                                  style={{
+                                    background: `${value}`,
+                                    width: "40px",
+                                    fontSize: "11px",
+                                    marginLeft: "3px",
+                                  }}
+                                >
+                                  {r.data.mbti}
+                                </p>
+                              )
+                          )}
+                        </div>
+
+                        {i == reEdit ? (
+                          <Container
+                            key={r.data.replyId}
+                            className="d-flex flex-column align-items-end my-1 px-1"
+                          >
+                            <Editor
+                              apiKey={tinymcekey}
+                              value={reEditText}
+                              onInit={(evt, editor) =>
+                                (editorRef.current = editor)
+                              }
+                              outputFormat="text"
+                              onEditorChange={(newText) =>
+                                setReEditText(newText)
+                              }
+                              init={{
+                                // max_height: 180,
+                                height: 10,
+                                width: "100%",
+                                language: "ko_KR",
+                                placeholder: "댓글을 입력하세요.",
+                                menubar: false,
+                                branding: false,
+                                statusbar: false,
+                                contextmenu: false,
+                                default_link_target: "_blank",
+                                plugins: [
+                                  "link",
+                                  "emoticons",
+                                  "autoresize",
+                                  "autolink",
+                                ],
+                                toolbar: "| emoticons link |",
+                                extended_valid_elements:
+                                  "a[href|target=_blank]",
+                                autoresize_on_init: false,
+                                content_style:
+                                  "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
+                              }}
+                            ></Editor>
+                            <div className="mt-2">
+                              <Button
+                                disabled={reEditText.length == 0 && true}
+                                type="submit"
+                                id="comment"
+                                className="rounded-pill me-1"
+                                variant="primary"
+                                size="sm"
+                                onClick={() => {
+                                  db.collection("post")
+                                    .doc(docId)
+                                    .collection("comment")
+                                    .doc(a.data.commentId)
+                                    .collection("reply")
+                                    .doc(r.data.replyId)
+                                    .update({
+                                      reply: reEditText,
+                                    });
+                                  db.collection("user-info")
+                                    .doc(uid)
+                                    .collection("replies")
+                                    .doc(r.data.replyId)
+                                    .update({
+                                      reply: reEditText,
+                                    });
+                                  setReEdit();
+                                }}
+                              >
+                                완료
+                              </Button>
+                              <Button
+                                type="submit"
+                                id="comment"
+                                className="rounded-pill"
+                                variant="outline-dark"
+                                size="sm"
+                                onClick={() => {
+                                  setReEdit();
+                                }}
+                              >
+                                취소
+                              </Button>
+                            </div>
+                          </Container>
+                        ) : (
+                          <Container className="px-0">
+                            <Card.Body
+                              className="mx-1 pt-0 pb-1 px-2"
+                              style={{
+                                background: "#E9EBEE",
+                                borderRadius: "5px",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                }}
+                              >
+                                <div style={{ display: "flex" }}>
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                    }}
+                                  >
+                                    <Link
+                                      to=""
+                                      className="nickname"
+                                      style={{
+                                        fontSize: "14px",
+                                        marginLeft: "2px",
+                                        lineHeight: "30px",
+                                      }}
+                                    >
+                                      {r.data.nickname}
+                                    </Link>
+
+                                    <OverlayTrigger
+                                      placement={
+                                        window.innerWidth < 576
+                                          ? "top"
+                                          : "right"
+                                      }
+                                      overlay={
+                                        <Tooltip id="button-tooltip-2">
+                                          {moment(
+                                            r.data.timeStamp.seconds * 1000
+                                          ).format("llll")}
+                                        </Tooltip>
+                                      }
+                                    >
+                                      <span
+                                        className="timestamp mx-2"
+                                        style={{
+                                          fontSize: "12px",
+                                          lineHeight: "36px",
+                                        }}
+                                      >
+                                        {currentTime -
+                                          r.data.timeStamp.seconds >
+                                        year
+                                          ? Math.floor(
+                                              (currentTime -
+                                                r.data.timeStamp.seconds) /
+                                                year
+                                            ) + "년 전"
+                                          : currentTime -
+                                              r.data.timeStamp.seconds >
+                                            month
+                                          ? Math.floor(
+                                              (currentTime -
+                                                r.data.timeStamp.seconds) /
+                                                month
+                                            ) + "개월 전"
+                                          : currentTime -
+                                              r.data.timeStamp.seconds >
+                                            day
+                                          ? Math.floor(
+                                              (currentTime -
+                                                r.data.timeStamp.seconds) /
+                                                day
+                                            ) + "일 전"
+                                          : currentTime -
+                                              r.data.timeStamp.seconds >
+                                            hour
+                                          ? Math.floor(
+                                              (currentTime -
+                                                r.data.timeStamp.seconds) /
+                                                hour
+                                            ) + "시간 전"
+                                          : currentTime -
+                                              r.data.timeStamp.seconds >
+                                            min
+                                          ? Math.floor(
+                                              (currentTime -
+                                                r.data.timeStamp.seconds) /
+                                                min
+                                            ) + "분 전"
+                                          : "방금 전"}
+                                      </span>
+                                    </OverlayTrigger>
+                                  </div>
+                                </div>
+
+                                {user != null && uid == r.data.uid && (
+                                  <Dropdown>
+                                    <Dropdown.Toggle
+                                      size="sm"
+                                      variant="white"
+                                      style={{ lineHeight: "20px" }}
+                                      className="more shadow-none rounded-pill px-1 py-1"
+                                    >
+                                      <FiMoreHorizontal
+                                        size="23"
+                                        color="#6E6E6E"
+                                      ></FiMoreHorizontal>
+                                    </Dropdown.Toggle>
+
+                                    <Dropdown.Menu
+                                      align="end"
+                                      variant="dark"
+                                      style={{
+                                        minWidth: "120px",
+                                        fontSize: "18px",
+                                      }}
+                                    >
+                                      <Dropdown.Item
+                                        onClick={() => {
+                                          setReEditText(r.data.reply);
+                                          setReEdit(i);
+                                        }}
+                                      >
+                                        수정하기
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        onClick={() => {
+                                          if (
+                                            window.confirm(
+                                              "답글을 삭제하시겠습니까?"
+                                            )
+                                          ) {
+                                            db.collection("post")
+                                              .doc(docId)
+                                              .collection("comment")
+                                              .doc(a.data.commentId)
+                                              .collection("reply")
+                                              .doc(r.data.replyId)
+                                              .delete();
+                                            db.collection("user-info")
+                                              .doc(uid)
+                                              .collection("replies")
+                                              .doc(r.data.replyId)
+                                              .delete();
+                                            db.collection("post")
+                                              .doc(docId)
+                                              .collection("comment")
+                                              .doc(a.data.commentId)
+                                              .update({
+                                                reply: a.data.reply - 1,
+                                              });
+                                          }
+                                        }}
+                                      >
+                                        삭제하기
+                                      </Dropdown.Item>
+                                    </Dropdown.Menu>
+                                  </Dropdown>
+                                )}
+                              </div>
+
+                              <div
+                                className="comment-content"
+                                style={{
+                                  margin: "0 3px",
+                                }}
+                              >
+                                {parse(r.data.reply)}
+                              </div>
+                            </Card.Body>
+                            <Card.Footer
+                              className="text-muted d-flex justify-content-start px-0 py-0 mt-0 mb-0"
+                              style={{
+                                background: "inherit",
+                                height: "30px",
+                                border: "none",
+                              }}
+                            >
+                              <div
+                                className="comment-footer"
+                                style={{
+                                  display: "flex",
+                                  cursor: "pointer",
+                                  borderRadius: "3px",
+                                }}
+                                onClick={() => {
+                                  {
+                                    user != null
+                                      ? noInfo == false
+                                        ? r.data.likedUser != null &&
+                                          r.data.likedUser.includes(uid) ==
+                                            false
+                                          ? db
+                                              .collection("post")
+                                              .doc(docId)
+                                              .collection("comment")
+                                              .doc(a.data.commentId)
+                                              .collection("reply")
+                                              .doc(r.data.replyId)
+                                              .update({
+                                                likes: r.data.likes + 1,
+                                                likedUser: arrayUnion(uid),
+                                              })
+                                          : db
+                                              .collection("post")
+                                              .doc(docId)
+                                              .collection("comment")
+                                              .doc(a.data.commentId)
+                                              .collection("reply")
+                                              .doc(r.data.replyId)
+                                              .update({
+                                                likes: r.data.likes - 1,
+                                                likedUser: arrayRemove(uid),
+                                              })
+                                        : history.push("/user?uid=" + user.uid)
+                                      : setModalShow(true);
+                                  }
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    width: "100%",
+                                    margin: "auto",
+                                    display: "flex",
+                                    justifyContent: "space-evenly",
+                                  }}
+                                >
+                                  <FiHeart
+                                    size="14"
+                                    color={checkLike(
+                                      r.data.likedUser,
+                                      "#777777"
+                                    )}
+                                    fill={checkLike(r.data.likedUser, "none")}
+                                  ></FiHeart>
+
+                                  <span
+                                    style={{
+                                      color: checkLike(
+                                        r.data.likedUser,
+                                        "#777777"
+                                      ),
+                                    }}
+                                  >
+                                    {r.data.likes}
+                                  </span>
+                                </div>
+                              </div>
+                            </Card.Footer>
+                          </Container>
+                        )}
+                      </div>
+                    </Container>
+                  ))}
+                  {reEdit == null && (
+                    <Container className="d-flex flex-column align-items-end my-2 pe-3 reply-editor">
+                      <Editor
+                        apiKey={tinymcekey}
+                        value={replyText}
+                        onInit={(evt, editor) => (editorRef.current = editor)}
+                        outputFormat="text"
+                        onEditorChange={(newText) => setReplyText(newText)}
+                        init={{
+                          // max_height: 180,
+                          height: 10,
+                          width: "100%",
+                          language: "ko_KR",
+                          placeholder: "답글을 입력하세요.",
+                          menubar: false,
+                          toolbar: false,
+                          branding: false,
+                          statusbar: false,
+                          contextmenu: false,
+                          default_link_target: "_blank",
+                          plugins: ["link", "autoresize", "autolink"],
+                          extended_valid_elements: "a[href|target=_blank]",
+                          autoresize_on_init: false,
+                          content_style:
+                            "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
+                        }}
+                      ></Editor>
+                      {user ? (
+                        <div className="mt-2">
+                          <Button
+                            disabled={replyText.length == 0 && true}
+                            type="submit"
+                            // id="comment"
+                            className="rounded-pill"
+                            variant="primary"
+                            size="sm"
+                            onClick={() => {
+                              const newDoc = db
+                                .collection("post")
+                                .doc(docId)
+                                .collection("comment")
+                                .doc(a.data.commentId)
+                                .collection("reply")
+                                .doc();
+                              {
+                                noInfo == true
+                                  ? history.push("/user?uid=" + user.uid)
+                                  : newDoc.set({
+                                      uid: uid,
+                                      replyId: newDoc.id,
+                                      nickname: commentNickname,
+                                      mbti: commentUserMbti,
+                                      reply: replyText,
+                                      likedUser: [],
+                                      likes: 0,
+                                      timeStamp: Timestamp.now(),
+                                    });
+                                db.collection("user-info")
+                                  .doc(uid)
+                                  .collection("replies")
+                                  .doc(newDoc.id)
+                                  .set({
+                                    reply: replyText,
+                                    replyId: newDoc.id,
+                                    docId: docId,
+                                    timeStamp: Timestamp.now(),
+                                  })
+                                  .then(() => {
+                                    setReplyText("");
+                                  });
+                                db.collection("post")
+                                  .doc(docId)
+                                  .collection("comment")
+                                  .doc(a.data.commentId)
+                                  .update({
+                                    reply: a.data.reply + 1,
+                                  });
+                              }
+                              // setReply();
+                            }}
+                          >
+                            등록
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          className="rounded-pill mx-1 mt-1"
+                          variant="outline-dark"
+                          size="sm"
+                          onClick={() => {
+                            signInWithPopup(auth, provider)
+                              .then()
+                              .catch(() => {
+                                console.log("로그인필요");
+                              });
+                          }}
+                        >
+                          로그인
+                        </Button>
+                      )}
+                    </Container>
+                  )}
+                </>
+              )}
+              {/* </>
+            )} */}
+            </>
+          ))}
         </Card>
-      ))}
+      )}
     </>
   );
 }
+
+// {
+//   const newDoc = db
+//                     .collection("post")
+//                     .doc(docId)
+//                     .collection("comment")
+//                     .doc(a.data.commentId)
+//                     .collection("reply")
+//                     .doc()
+
+//                   {
+//                     noInfo == true
+//                       ? history.push("/user?uid=" + user.uid)
+//                       : newDoc.set({
+//                           uid: uid,
+//                           commentId: newDoc.id,
+//                           nickname: commentNickname,
+//                           mbti: commentUserMbti,
+//                           comment: text,
+//                           likedUser: [],
+//                           likes: 0,
+//                           timeStamp: Timestamp.now(),
+
+// }
 
 {
   /* <Card.Header

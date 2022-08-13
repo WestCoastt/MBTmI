@@ -185,7 +185,9 @@ export default function CreateList(props) {
               </div>
 
               <div style={{ display: "flex", flexDirection: "column" }}>
-                <Link className="nickname">{props.nickname}</Link>
+                <Link to="" className="nickname">
+                  {props.nickname}
+                </Link>
 
                 <OverlayTrigger
                   placement="right"
@@ -339,7 +341,7 @@ export default function CreateList(props) {
             >
               <FiHeart
                 size="18"
-                color="#FF6C85"
+                color={like == true ? "#FF6C85" : "#777777"}
                 fill={like == true ? "#FF6C85" : "none"}
               ></FiHeart>
 
@@ -347,7 +349,7 @@ export default function CreateList(props) {
                 style={{
                   maxWidth: "48px",
                   lineHeight: "16px",
-                  color: "#FF6C85",
+                  color: like == true ? "#FF6C85" : "#777777",
                   textAlign: "center",
                 }}
               >
