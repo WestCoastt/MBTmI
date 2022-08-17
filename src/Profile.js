@@ -12,6 +12,7 @@ import { FaRegTrashAlt } from "react-icons/fa";
 import PostsTab from "./PostsTab.js";
 import CommentsTab from "./CommentsTab.js";
 import LikesTab from "./LikesTab.js";
+import RepliesTab from "./RepliesTab.js";
 import { getAuth, deleteUser } from "firebase/auth";
 
 export default function Profile() {
@@ -73,7 +74,8 @@ export default function Profile() {
             eventKey={`/${nickname}`}
             className="px-1 mx-1"
           >
-            My Profile
+            {/* My Profile */}
+            프로필
           </Nav.Link>
         </Nav.Item>
         <Nav.Item>
@@ -83,7 +85,8 @@ export default function Profile() {
             eventKey={`/${nickname}/posts`}
             className="px-1 mx-1"
           >
-            Posts
+            {/* Posts */}
+            게시글
           </Nav.Link>
         </Nav.Item>
         <Nav.Item>
@@ -93,7 +96,18 @@ export default function Profile() {
             eventKey={`/${nickname}/comments`}
             className="px-1 mx-1"
           >
-            Comments
+            {/* Comments */}
+            댓글
+          </Nav.Link>
+        </Nav.Item>
+        <Nav.Item>
+          <Nav.Link
+            as={Link}
+            to={`/${nickname}/replies`}
+            eventKey={`/${nickname}/replies`}
+            className="px-1 mx-1"
+          >
+            답글
           </Nav.Link>
         </Nav.Item>
         <Nav.Item>
@@ -103,7 +117,7 @@ export default function Profile() {
             eventKey={`/${nickname}/likes`}
             className="px-1 mx-1"
           >
-            Likes
+            좋아요
           </Nav.Link>
         </Nav.Item>
       </Nav>
@@ -224,11 +238,14 @@ export default function Profile() {
         </div>
       </Route>
 
+      <Route path={`/${nickname}/posts`}>
+        <PostsTab></PostsTab>
+      </Route>
       <Route path={`/${nickname}/comments`}>
         <CommentsTab></CommentsTab>
       </Route>
-      <Route path={`/${nickname}/posts`}>
-        <PostsTab></PostsTab>
+      <Route path={`/${nickname}/replies`}>
+        <RepliesTab></RepliesTab>
       </Route>
       <Route path={`/${nickname}/likes`}>
         <LikesTab></LikesTab>
@@ -267,6 +284,7 @@ function MyVerticallyCenteredModal(props) {
             const comments = db
               .collectionGroup("comment")
               .where("uid", "==", uid);
+            const replies = db.collectionGroup("reply").where("uid", "==", uid);
 
             posts.get().then((snapshot) => {
               snapshot.docs.forEach((doc) => {
@@ -275,7 +293,47 @@ function MyVerticallyCenteredModal(props) {
             });
             comments.get().then((snapshot) => {
               snapshot.docs.forEach((doc) => {
+                doc.ref.update({
+                  comment: null,
+                  mbti: null,
+                  nickname: null,
+                  uid: null,
+                });
+                db.collection("post")
+                  .doc(doc.data().docId)
+                  .get()
+                  .then((result) => {
+                    if (result.exists) {
+                      db.collection("post")
+                        .doc(doc.data().docId)
+                        .update({
+                          comments: result.data().comments - 1,
+                          totalScore: result.data().totalScore - 0.6,
+                        });
+                    }
+                  });
+              });
+            });
+            replies.get().then((snapshot) => {
+              snapshot.docs.forEach((doc) => {
                 doc.ref.delete();
+
+                db.collection("post")
+                  .doc(doc.data().docId)
+                  .collection("comment")
+                  .doc(doc.data().commentId)
+                  .get()
+                  .then((result) => {
+                    if (result.exists) {
+                      db.collection("post")
+                        .doc(doc.data().docId)
+                        .collection("comment")
+                        .doc(doc.data().commentId)
+                        .update({
+                          reply: result.data().reply - 1,
+                        });
+                    }
+                  });
               });
             });
 

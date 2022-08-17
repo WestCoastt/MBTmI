@@ -503,6 +503,7 @@ input {
     height: 100%;
     max-width: 768px;
     max-height: 360px;
+    top: 0;
     padding-bottom: 120px;
   }
   .reply-editor {

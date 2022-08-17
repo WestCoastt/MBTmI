@@ -5,29 +5,29 @@ import { db } from "./index.js";
 import parse from "html-react-parser";
 import { FiMoreHorizontal } from "react-icons/fi";
 
-export default function CommentsTab() {
+export default function RepliesTab() {
   const uid = window.localStorage.getItem("uid");
 
-  const [comments, setComments] = useState([]);
+  const [replies, setReplies] = useState([]);
   const [lastVisible, setLastVisible] = useState();
   const [pages, setPages] = useState();
   const [currentPage, setCurrentPage] = useState();
 
-  const commentList = db
+  const repliesList = db
     .collection("user-info")
     .doc(uid)
-    .collection("comments")
+    .collection("replies")
     .orderBy("timeStamp");
 
   useEffect(() => {
-    commentList.limit(10).onSnapshot((snapshot) => {
-      const commentArr = snapshot.docs.map((doc) => ({
+    repliesList.limit(10).onSnapshot((snapshot) => {
+      const replyArr = snapshot.docs.map((doc) => ({
         data: doc.data(),
       }));
-      setComments(commentArr);
+      setReplies(replyArr);
       setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
     });
-    commentList.onSnapshot((snapshot) => {
+    repliesList.onSnapshot((snapshot) => {
       setPages(Math.ceil(snapshot.docs.length / 10));
       if (snapshot.docs.length != 0) {
         setCurrentPage(1);
@@ -37,22 +37,22 @@ export default function CommentsTab() {
 
   function prevPage() {
     if (currentPage > 2) {
-      commentList
+      repliesList
         .endBefore(lastVisible)
         .limitToLast(10)
         .onSnapshot((snapshot) => {
           const prevArr = snapshot.docs.map((doc) => ({
             data: doc.data(),
           }));
-          setComments(prevArr);
+          setReplies(prevArr);
           setLastVisible(snapshot.docs[0]);
         });
     } else if (currentPage == 2) {
-      commentList.limit(10).onSnapshot((snapshot) => {
-        const commentArr = snapshot.docs.map((doc) => ({
+      repliesList.limit(10).onSnapshot((snapshot) => {
+        const replyArr = snapshot.docs.map((doc) => ({
           data: doc.data(),
         }));
-        setComments(commentArr);
+        setReplies(replyArr);
         setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
       });
     }
@@ -60,14 +60,14 @@ export default function CommentsTab() {
 
   function nextPage() {
     if (currentPage !== pages) {
-      commentList
+      repliesList
         .startAfter(lastVisible)
         .limit(10)
         .onSnapshot((snapshot) => {
           const nextArr = snapshot.docs.map((doc) => ({
             data: doc.data(),
           }));
-          setComments(nextArr);
+          setReplies(nextArr);
           setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
         });
     }
@@ -76,8 +76,8 @@ export default function CommentsTab() {
   return (
     <div className="user">
       <ListGroup variant="flush" style={{ marginTop: "10px", height: "500px" }}>
-        {comments.map((a, i) => (
-          <ListGroup.Item key={a.data.commentId}>
+        {replies.map((a, i) => (
+          <ListGroup.Item key={a.data.replyId}>
             <Link
               to={`/comments?docId=${a.data.docId}`}
               className="tab-items"
@@ -87,7 +87,7 @@ export default function CommentsTab() {
                 className="posts"
                 style={{ lineHeight: "36px", width: "70%" }}
               >
-                {parse(a.data.comment)}
+                {parse(a.data.reply)}
               </span>
             </Link>
 
@@ -122,31 +122,30 @@ export default function CommentsTab() {
                 >
                   <Dropdown.Item
                     onClick={() => {
-                      if (window.confirm("댓글을 삭제하시겠습니까?")) {
-                        db.collection("post")
+                      if (window.confirm("답글을 삭제하시겠습니까?")) {
+                        const commentDoc = db
+                          .collection("post")
                           .doc(a.data.docId)
                           .collection("comment")
-                          .doc(a.data.commentId)
-                          .delete();
-                        db.collection("user-info")
-                          .doc(uid)
-                          .collection("comments")
-                          .doc(a.data.commentId)
+                          .doc(a.data.commentId);
+                        commentDoc
+                          .collection("reply")
+                          .doc(a.data.replyId)
                           .delete();
 
-                        db.collection("post")
-                          .doc(a.data.docId)
-                          .get()
-                          .then((doc) => {
-                            if (doc.exists) {
-                              db.collection("post")
-                                .doc(a.data.docId)
-                                .update({
-                                  comments: doc.data().comments - 1,
-                                  totalScore: doc.data().totalScore - 0.6,
-                                });
-                            }
-                          });
+                        db.collection("user-info")
+                          .doc(uid)
+                          .collection("replies")
+                          .doc(a.data.replyId)
+                          .delete();
+
+                        commentDoc.get().then((doc) => {
+                          if (doc.exists) {
+                            commentDoc.update({
+                              reply: doc.data().reply - 1,
+                            });
+                          }
+                        });
                       }
                     }}
                   >
@@ -155,7 +154,6 @@ export default function CommentsTab() {
                 </Dropdown.Menu>
               </Dropdown>
             )}
-            {/* </div> */}
           </ListGroup.Item>
         ))}
       </ListGroup>

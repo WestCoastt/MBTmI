@@ -357,6 +357,8 @@ function App() {
                   content={a.data.content}
                   uid={a.data.uid}
                   docId={a.data.docId}
+                  likes={a.data.likes}
+                  likedUser={a.data.likedUser}
                   nickname={a.data.nickname}
                   timestamp={a.data.timeStamp.seconds}
                   mbti={a.data.mbti}

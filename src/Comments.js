@@ -485,6 +485,11 @@ export default function Comments() {
                 "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
             }}
           ></Editor>
+          {text.length > 1000 && (
+            <p style={{ fontSize: "14px", margin: "0 16px 0 0", color: "red" }}>
+              댓글의 글자수는 최대 1,000자로 제한됩니다.
+            </p>
+          )}
           <div
             style={{
               width: "100%",
@@ -507,7 +512,7 @@ export default function Comments() {
             </span>
             {user ? (
               <Button
-                disabled={text.length == 0 && true}
+                disabled={(text.length == 0 || text.length > 1000) && true}
                 type="submit"
                 id="comment"
                 className="rounded-pill"
@@ -524,6 +529,7 @@ export default function Comments() {
                       ? history.push("/user?uid=" + user.uid)
                       : newDoc.set({
                           uid: uid,
+                          docId: docId,
                           commentId: newDoc.id,
                           nickname: commentNickname,
                           mbti: commentUserMbti,
@@ -658,9 +664,23 @@ export default function Comments() {
                             "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
                         }}
                       ></Editor>
+                      {editText.length > 1000 && (
+                        <p
+                          style={{
+                            fontSize: "14px",
+                            margin: "0",
+                            color: "red",
+                          }}
+                        >
+                          댓글의 글자수는 최대 1,000자로 제한됩니다.
+                        </p>
+                      )}
                       <div className="mt-2">
                         <Button
-                          disabled={editText.length == 0 && true}
+                          disabled={
+                            (editText.length == 0 || editText.length > 1000) &&
+                            true
+                          }
                           type="submit"
                           id="comment"
                           className="rounded-pill me-1"
@@ -866,7 +886,6 @@ export default function Comments() {
                           </div>
 
                           <div
-                            className="comment-content"
                             style={{
                               margin: "0 3px",
                             }}
@@ -1073,9 +1092,24 @@ export default function Comments() {
                                   "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
                               }}
                             ></Editor>
+                            {reEditText.length > 1000 && (
+                              <p
+                                style={{
+                                  fontSize: "14px",
+                                  margin: "0",
+                                  color: "red",
+                                }}
+                              >
+                                답글의 글자수는 최대 1,000자로 제한됩니다.
+                              </p>
+                            )}
                             <div className="mt-2">
                               <Button
-                                disabled={reEditText.length == 0 && true}
+                                disabled={
+                                  (reEditText.length == 0 ||
+                                    reEditText.length > 1000) &&
+                                  true
+                                }
                                 type="submit"
                                 id="comment"
                                 className="rounded-pill me-1"
@@ -1249,15 +1283,17 @@ export default function Comments() {
                                       </Dropdown.Item>
                                       <Dropdown.Item
                                         onClick={() => {
+                                          const commentDoc = db
+                                            .collection("post")
+                                            .doc(docId)
+                                            .collection("comment")
+                                            .doc(a.data.commentId);
                                           if (
                                             window.confirm(
                                               "답글을 삭제하시겠습니까?"
                                             )
                                           ) {
-                                            db.collection("post")
-                                              .doc(docId)
-                                              .collection("comment")
-                                              .doc(a.data.commentId)
+                                            commentDoc
                                               .collection("reply")
                                               .doc(r.data.replyId)
                                               .delete();
@@ -1266,13 +1302,12 @@ export default function Comments() {
                                               .collection("replies")
                                               .doc(r.data.replyId)
                                               .delete();
-                                            db.collection("post")
-                                              .doc(docId)
-                                              .collection("comment")
-                                              .doc(a.data.commentId)
-                                              .update({
-                                                reply: a.data.reply - 1,
-                                              });
+                                            commentDoc.update({
+                                              reply: a.data.reply - 1,
+                                            });
+                                            if (a.data.reply == 1) {
+                                              commentDoc.delete();
+                                            }
                                           }
                                         }}
                                       >
@@ -1403,10 +1438,25 @@ export default function Comments() {
                             "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
                         }}
                       ></Editor>
+                      {replyText.length > 1000 && (
+                        <p
+                          style={{
+                            fontSize: "14px",
+                            margin: "0",
+                            color: "red",
+                          }}
+                        >
+                          답글의 글자수는 최대 1,000자로 제한됩니다.
+                        </p>
+                      )}
                       {user ? (
                         <div className="mt-2">
                           <Button
-                            disabled={replyText.length == 0 && true}
+                            disabled={
+                              (replyText.length == 0 ||
+                                replyText.length > 1000) &&
+                              true
+                            }
                             type="submit"
                             // id="comment"
                             className="rounded-pill"
@@ -1425,6 +1475,8 @@ export default function Comments() {
                                   ? history.push("/user?uid=" + user.uid)
                                   : newDoc.set({
                                       uid: uid,
+                                      docId: docId,
+                                      commentId: a.data.commentId,
                                       replyId: newDoc.id,
                                       nickname: commentNickname,
                                       mbti: commentUserMbti,
@@ -1440,6 +1492,7 @@ export default function Comments() {
                                   .set({
                                     reply: replyText,
                                     replyId: newDoc.id,
+                                    commentId: a.data.commentId,
                                     docId: docId,
                                     timeStamp: Timestamp.now(),
                                   })

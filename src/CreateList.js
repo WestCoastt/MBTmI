@@ -19,7 +19,6 @@ export default function CreateList(props) {
   const history = useHistory();
   const auth = getAuth();
   const [user, setUser] = useState(null);
-  const [like, setLike] = useState(false);
   const [cnt, setCnt] = useState();
   const [totalScore, setTotalScore] = useState();
   const [comments, setComments] = useState();
@@ -67,7 +66,7 @@ export default function CreateList(props) {
       .then((result) => {
         result.forEach((a) => {
           if (a.data().docId == props.docId) {
-            setLike(true);
+            // setLike(true);
           }
         });
       });
@@ -144,6 +143,14 @@ export default function CreateList(props) {
     });
   }, []);
 
+  const checkLike = (color) => {
+    if (props.likedUser && props.likedUser.includes(uid)) {
+      return "#FF6C85";
+    } else {
+      return color;
+    }
+  };
+
   return (
     <div
       style={{
@@ -159,7 +166,6 @@ export default function CreateList(props) {
           margin: "8px 0px",
         }}
       >
-        {/* <Card.Header className="d-flex justify-content-between" as="h5"> */}
         <Card.Header
           className="pb-0"
           style={{ background: "inherit", border: "none" }}
@@ -167,7 +173,6 @@ export default function CreateList(props) {
           <div
             style={{
               fontSize: "16px",
-              // marginBottom: "6px",
               display: "flex",
               justifyContent: "space-between",
             }}
@@ -233,12 +238,7 @@ export default function CreateList(props) {
                           .doc(uid)
                           .collection("posts")
                           .doc(props.docId)
-                          .delete()
-                          .then(() => {
-                            // location.reload();
-                            // map돌릴때 key값을 고유한 값(ex. docID)을 매기니까 리로드 필요 없어짐
-                            //key값을 index로 주면 delete할때 순서가 엉망이 됨
-                          });
+                          .delete();
                       }
                     }}
                   >
@@ -287,12 +287,26 @@ export default function CreateList(props) {
               {
                 user != null
                   ? noInfo == false
-                    ? like == false
+                    ? props.likedUser && props.likedUser.includes(uid)
                       ? db
                           .collection("post")
                           .doc(props.docId)
                           .update({
-                            likes: cnt + 1,
+                            likes: props.likes - 1,
+                            totalScore: totalScore - 0.4,
+                            likedUser: arrayRemove(uid),
+                          }) &&
+                        db
+                          .collection("user-info")
+                          .doc(uid)
+                          .collection("likes")
+                          .doc(props.docId)
+                          .delete()
+                      : db
+                          .collection("post")
+                          .doc(props.docId)
+                          .update({
+                            likes: props.likes + 1,
                             totalScore: totalScore + 0.4,
                             likedUser: arrayUnion(uid),
                           }) &&
@@ -306,28 +320,8 @@ export default function CreateList(props) {
                             title: props.title,
                             timeStamp: Timestamp.now(),
                           })
-                      : db
-                          .collection("post")
-                          .doc(props.docId)
-                          .update({
-                            likes: cnt - 1,
-                            totalScore: totalScore - 0.4,
-                            likedUser: arrayRemove(uid),
-                          }) &&
-                        db
-                          .collection("user-info")
-                          .doc(uid)
-                          .collection("likes")
-                          .doc(props.docId)
-                          .delete() &&
-                        setLike(false)
                     : history.push("/user?uid=" + user.uid)
                   : setModalShow(true);
-                //  signInWithPopup(auth, provider)
-                //     .then()
-                //     .catch(() => {
-                //       console.log("로그인필요");
-                //     });
               }
             }}
           >
@@ -341,19 +335,19 @@ export default function CreateList(props) {
             >
               <FiHeart
                 size="18"
-                color={like == true ? "#FF6C85" : "#777777"}
-                fill={like == true ? "#FF6C85" : "none"}
+                color={checkLike("#777777")}
+                fill={checkLike("none")}
               ></FiHeart>
 
               <span
                 style={{
                   maxWidth: "48px",
                   lineHeight: "16px",
-                  color: like == true ? "#FF6C85" : "#777777",
+                  color: checkLike("#777777"),
                   textAlign: "center",
                 }}
               >
-                {cnt}
+                {props.likes}
               </span>
             </div>
           </div>
@@ -452,3 +446,50 @@ export default function CreateList(props) {
   </div>
 </div> */
 }
+
+// onClick={() => {
+//   {
+//     user != null
+//       ? noInfo == false
+//         ? like == false
+//           ? db
+//               .collection("post")
+//               .doc(props.docId)
+//               .update({
+//                 likes: cnt + 1,
+//                 totalScore: totalScore + 0.4,
+//                 likedUser: arrayUnion(uid),
+//               }) &&
+//             db
+//               .collection("user-info")
+//               .doc(uid)
+//               .collection("likes")
+//               .doc(props.docId)
+//               .set({
+//                 docId: props.docId,
+//                 title: props.title,
+//                 timeStamp: Timestamp.now(),
+//               })
+//           : db
+//               .collection("post")
+//               .doc(props.docId)
+//               .update({
+//                 likes: cnt - 1,
+//                 totalScore: totalScore - 0.4,
+//                 likedUser: arrayRemove(uid),
+//               }) &&
+//             db
+//               .collection("user-info")
+//               .doc(uid)
+//               .collection("likes")
+//               .doc(props.docId)
+//               .delete() &&
+//             setLike(false)
+//         : history.push("/user?uid=" + user.uid)
+//       : setModalShow(true);
+//     //  signInWithPopup(auth, provider)
+//     //     .then()
+//     //     .catch(() => {
+//     //       console.log("로그인필요");
+//     //     });
+//   }
