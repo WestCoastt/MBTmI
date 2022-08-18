@@ -1,7 +1,7 @@
 /* eslint no-restricted-globals: ["off"] */
 import React, { useState, useEffect } from "react";
 import { Button, Navbar, Container, Dropdown } from "react-bootstrap";
-import { Route, Link } from "react-router-dom";
+import { Switch, Route, Link } from "react-router-dom";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import "./App.css";
 import Post from "./Post";
@@ -25,6 +25,7 @@ import ReactLoading from "react-loading";
 import { FiSearch, FiMoreHorizontal } from "react-icons/fi";
 import { FaUserCircle } from "react-icons/fa";
 import { BsPencilSquare } from "react-icons/bs";
+import NotFound from "./NotFound";
 
 function App() {
   const uid = window.localStorage.getItem("uid");
@@ -309,107 +310,110 @@ function App() {
           </div>
         ) : (
           <div className="board">
-            <Route exact path="/">
-              <Best best={best}></Best>
-              {notification && (
-                <Container className="d-flex justify-content-center">
+            <Switch>
+              <Route exact path="/">
+                <Best best={best}></Best>
+                {notification && (
+                  <Container className="d-flex justify-content-center">
+                    <Button
+                      className="rounded-pill"
+                      style={{
+                        position: "fixed",
+                        zIndex: "10",
+                        fontSize: "inherit",
+                      }}
+                      onClick={() => {
+                        window.scrollTo(0, 0);
+                        setNotification(false);
+                      }}
+                    >
+                      새 게시물
+                    </Button>
+                  </Container>
+                )}
+                {create && (
                   <Button
-                    className="rounded-pill"
+                    variant="primary"
+                    size="sm"
+                    className="rounded-circle"
                     style={{
+                      bottom: "15px",
+                      marginRight: "15px",
+                      width: "50px",
+                      height: "50px",
                       position: "fixed",
                       zIndex: "10",
-                      fontSize: "inherit",
+                      lineHeight: "18px",
                     }}
                     onClick={() => {
-                      window.scrollTo(0, 0);
-                      setNotification(false);
+                      history.push("/post");
                     }}
                   >
-                    새 게시물
+                    <BsPencilSquare size="20"></BsPencilSquare>
                   </Button>
-                </Container>
-              )}
-              {create && (
-                <Button
-                  variant="primary"
-                  size="sm"
-                  className="rounded-circle"
-                  style={{
-                    bottom: "15px",
-                    marginRight: "15px",
-                    width: "50px",
-                    height: "50px",
-                    position: "fixed",
-                    zIndex: "10",
-                    lineHeight: "18px",
-                  }}
-                  onClick={() => {
-                    history.push("/post");
-                  }}
-                >
-                  <BsPencilSquare size="20"></BsPencilSquare>
-                </Button>
-              )}
-              {post.map((a, i) => (
-                <CreateList
-                  key={a.data.docId}
-                  title={a.data.title}
-                  content={a.data.content}
-                  uid={a.data.uid}
-                  docId={a.data.docId}
-                  likes={a.data.likes}
-                  likedUser={a.data.likedUser}
-                  nickname={a.data.nickname}
-                  timestamp={a.data.timeStamp.seconds}
-                  mbti={a.data.mbti}
-                ></CreateList>
-              ))}
-              {isLoading && (
-                <div
-                  style={{
-                    width: "100%",
-                    height: "100px",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <ReactLoading
-                    type="spin"
-                    color="#0d6efd"
-                    width="36px"
-                  ></ReactLoading>
-                </div>
-              )}
-              <div ref={setTarget}></div>
-            </Route>
-            <Route path="/post">
-              <Post></Post>
-            </Route>
-            <Route path="/edit">
-              <Edit></Edit>
-            </Route>
-
-            <Route path="/search">
-              <Search create={create}></Search>
-            </Route>
-            {user && (
-              <Route path="/user">
-                <UserInfo></UserInfo>
+                )}
+                {post.map((a, i) => (
+                  <CreateList
+                    key={a.data.docId}
+                    title={a.data.title}
+                    content={a.data.content}
+                    uid={a.data.uid}
+                    docId={a.data.docId}
+                    likes={a.data.likes}
+                    likedUser={a.data.likedUser}
+                    nickname={a.data.nickname}
+                    timestamp={a.data.timeStamp.seconds}
+                    mbti={a.data.mbti}
+                  ></CreateList>
+                ))}
+                {isLoading && (
+                  <div
+                    style={{
+                      width: "100%",
+                      height: "100px",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <ReactLoading
+                      type="spin"
+                      color="#0d6efd"
+                      width="36px"
+                    ></ReactLoading>
+                  </div>
+                )}
+                <div ref={setTarget}></div>
               </Route>
-            )}
-            {nickname && (
-              <Route path={`/${nickname}/`}>
-                <Profile></Profile>
+              <Route path="/post">
+                <Post></Post>
               </Route>
-            )}
-            <Route path="/comments">
-              <Comments></Comments>
-            </Route>
+              <Route path="/edit">
+                <Edit></Edit>
+              </Route>
 
-            {/* <Route path="*">
-          <div>페이지를 찾을 수 없습니다.(수정)</div>
-        </Route> */}
+              <Route path="/search">
+                <Search create={create}></Search>
+              </Route>
+              {user && (
+                <Route path="/user">
+                  <UserInfo></UserInfo>
+                </Route>
+              )}
+              {nickname && (
+                <Route path={`/${nickname}/`}>
+                  <Profile></Profile>
+                </Route>
+              )}
+              <Route path="/comments">
+                <Comments></Comments>
+              </Route>
+
+              <NotFound path="/404-not-found"></NotFound>
+              <Route path="*">
+                <NotFound></NotFound>
+              </Route>
+            </Switch>
           </div>
         )}
       </div>

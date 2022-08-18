@@ -6,12 +6,15 @@ import {
   Dropdown,
   OverlayTrigger,
   Tooltip,
-  Container,
 } from "react-bootstrap";
 import moment from "moment";
 import "moment/locale/ko";
 import { db } from "./index.js";
 import LoginModal from "./LoginModal";
+import BadgeColor from "./BadgeColor.js";
+import CommentCard from "./CommentCard.js";
+import EditorInit from "./EditorInit.js";
+import times from "./times.js";
 import {
   getAuth,
   GoogleAuthProvider,
@@ -23,8 +26,8 @@ import parse from "html-react-parser";
 import { Editor } from "@tinymce/tinymce-react";
 import { FiHeart, FiMoreHorizontal, FiShare2 } from "react-icons/fi";
 import { FaRegComment, FaUserCircle } from "react-icons/fa";
-import { useHistory, Link } from "react-router-dom";
-import { useId } from "react";
+import { useLocation, useHistory, Link } from "react-router-dom";
+import { Redirect } from "react-router-dom/cjs/react-router-dom.min.js";
 
 export default function Comments() {
   const uid = window.localStorage.getItem("uid");
@@ -36,45 +39,38 @@ export default function Comments() {
   const tinymcekey = process.env.REACT_APP_TINYMCE_KEY;
   const history = useHistory();
   const [modalShow, setModalShow] = React.useState(false);
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [userId, setUserId] = useState("");
+
   const [text, setText] = useState("");
   const editorRef = useRef(null);
   const [comment, setComment] = useState([]);
-  const [nickname, setNickname] = useState("");
   const [commentNickname, setCommentNickname] = useState("");
-  const [mbti, setMbti] = useState("");
-  const [badgeColor, setBadgeColor] = useState();
   const [noInfo, setNoInfo] = useState();
-  const [like, setLike] = useState(false);
-  const [cnt, setCnt] = useState();
   const [comments, setComments] = useState();
   const [totalScore, setTotalScore] = useState();
-  const [timeStamp, setTimeStamp] = useState();
-  const [time, setTime] = useState();
-  const koreanTime = moment(timeStamp * 1000).format("llll");
   const docId = urlSearch.get("docId");
-  const [edit, setEdit] = useState();
-  const [editText, setEditText] = useState("");
-  const [reply, setReply] = useState();
-  const [replyText, setReplyText] = useState("");
-  const [replies, setReplies] = useState([]);
-  const [reEdit, setReEdit] = useState();
-  const [reEditText, setReEditText] = useState("");
+  const [result, setResult] = useState();
+  const [postDoc, setPostDoc] = useState();
+  const [uidDoc, setUidDoc] = useState();
+
+  if (docId == "" || window.location.search.includes("?docId=") == false) {
+    return <Redirect to={"/404-not-found"} />;
+  }
+
+  useEffect(() => {
+    if (docId && uid) {
+      setPostDoc(db.collection("post").doc(docId));
+      setUidDoc(db.collection("user-info").doc(uid));
+    }
+  }, []);
 
   db.collection("post")
     .doc(docId)
     .get()
     .then((doc) => {
       if (doc.exists) {
-        setCnt(doc.data().likes);
         setComments(doc.data().comments);
         setTotalScore(doc.data().totalScore);
       }
-      // setCnt(doc.data().likes);
-      // setComments(doc.data().comments);
-      // setTotalScore(doc.data().totalScore);
     });
 
   useEffect(() => {
@@ -88,37 +84,19 @@ export default function Comments() {
         }));
         setComment(commentArr);
       });
-  }, []);
-
-  useEffect(() => {
     db.collection("post")
       .doc(docId)
-      .get()
-      .then((result) => {
-        setTitle(result.data().title);
-        setContent(result.data().content);
-        setUserId(result.data().uid);
-        setNickname(result.data().nickname);
-        setMbti(result.data().mbti);
-        setTimeStamp(result.data().timeStamp.seconds);
-      })
-      .catch(() => {
-        window.alert("삭제되었거나 존재하지 않는 게시물입니다.");
-        history.goBack();
+      .onSnapshot((result) => {
+        if (result.exists) {
+          setResult(result.data());
+        } else {
+          window.alert("삭제되었거나 존재하지 않는 게시물입니다.");
+          history.goBack();
+        }
       });
   }, []);
 
-  if (user != null) {
-    db.collection("post")
-      .where("likedUser", "array-contains", uid)
-      .get()
-      .then((result) => {
-        result.forEach((a) => {
-          if (a.data().docId == docId) {
-            setLike(true);
-          }
-        });
-      });
+  if (user) {
     db.collection("user-info")
       .doc(uid)
       .get()
@@ -146,57 +124,6 @@ export default function Comments() {
     }
   });
 
-  const min = 60;
-  const hour = 60 * 60;
-  const day = 60 * 60 * 24;
-  const month = 60 * 60 * 24 * 30;
-  const year = 60 * 60 * 24 * 365;
-
-  const currentTime = new Date() / 1000;
-
-  useEffect(() => {
-    const timeGap = currentTime - timeStamp;
-    if (timeGap > year) {
-      setTime(Math.floor(timeGap / year) + "년 전");
-    } else if (timeGap > month) {
-      setTime(Math.floor(timeGap / month) + "개월 전");
-    } else if (timeGap > day) {
-      setTime(Math.floor(timeGap / day) + "일 전");
-    } else if (timeGap > hour) {
-      setTime(Math.floor(timeGap / hour) + "시간 전");
-    } else if (timeGap > min) {
-      setTime(Math.floor(timeGap / min) + "분 전");
-    } else {
-      setTime("방금 전");
-    }
-  }, [timeStamp]);
-
-  const palette = {
-    ISTJ: "#1f55de",
-    ISFJ: "#7DCE13",
-    ISTP: "#a7a7a7",
-    ISFP: "#FFB4B4",
-    INTJ: "#3AB4F2",
-    INFJ: "#b2a4ff",
-    INTP: "#009DAE",
-    INFP: "#9900F0",
-    ESTJ: "#935f2f",
-    ESFJ: "#FFD124",
-    ESTP: "#1F4690",
-    ESFP: "#F637EC",
-    ENTJ: "#F32424",
-    ENFJ: "#FF5F00",
-    ENTP: "#545f5f",
-    ENFP: "#019267",
-  };
-  useEffect(() => {
-    Object.entries(palette).map(([key, value]) => {
-      if (mbti == key) {
-        setBadgeColor(value);
-      }
-    });
-  }, [mbti]);
-
   const checkLike = (arr, color) => {
     if (arr != null && arr.includes(uid)) {
       return "#FF6C85";
@@ -207,249 +134,243 @@ export default function Comments() {
 
   return (
     <>
-      <Card
-        style={{
-          width: "100%",
-          minWidth: "360px",
-          maxWidth: "768px",
-          margin: "15px 0px",
-        }}
-      >
-        <LoginModal show={modalShow} onHide={() => setModalShow(false)} />
-        <Card.Header
-          className="pb-0"
-          style={{ background: "inherit", border: "none" }}
+      {result && (
+        <Card
+          style={{
+            width: "100%",
+            minWidth: "360px",
+            maxWidth: "768px",
+            margin: "15px 0px",
+          }}
         >
-          <div
-            style={{
-              fontSize: "16px",
-              marginBottom: "6px",
-              display: "flex",
-              justifyContent: "space-between",
-            }}
+          <LoginModal show={modalShow} onHide={() => setModalShow(false)} />
+          <Card.Header
+            className="pb-0"
+            style={{ background: "inherit", border: "none" }}
           >
-            <div style={{ display: "flex" }}>
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <FaUserCircle
-                  size="36"
-                  color="#a0aec0"
-                  style={{ margin: "0 7px" }}
-                ></FaUserCircle>
-                <p className="badge" style={{ background: `${badgeColor}` }}>
-                  {mbti}
-                </p>
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <Link to="" className="nickname">
-                  {nickname}
-                </Link>
-
-                <OverlayTrigger
-                  placement="right"
-                  overlay={
-                    <Tooltip id="button-tooltip-2">{koreanTime}</Tooltip>
-                  }
-                >
-                  <span className="timestamp">{time}</span>
-                </OverlayTrigger>
-              </div>
-            </div>
-            {user != null && uid == userId && (
-              <Dropdown>
-                <Dropdown.Toggle
-                  size="sm"
-                  variant="light"
-                  style={{ lineHeight: "20px" }}
-                  className="more shadow-none rounded-pill px-1 py-1"
-                >
-                  <FiMoreHorizontal size="23"></FiMoreHorizontal>
-                </Dropdown.Toggle>
-
-                <Dropdown.Menu
-                  align="end"
-                  variant="dark"
-                  style={{ minWidth: "160px" }}
-                >
-                  <Dropdown.Item
-                    onClick={() => {
-                      history.push(`/edit?docId=${docId}`);
-                    }}
+            <div
+              style={{
+                fontSize: "16px",
+                marginBottom: "6px",
+                display: "flex",
+                justifyContent: "space-between",
+              }}
+            >
+              <div style={{ display: "flex" }}>
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  <FaUserCircle
+                    size="36"
+                    color="#a0aec0"
+                    style={{ margin: "0 7px" }}
+                  ></FaUserCircle>
+                  <p
+                    className="badge"
+                    style={{ background: BadgeColor(result.mbti) }}
                   >
-                    수정하기
-                  </Dropdown.Item>
-                  <Dropdown.Item
-                    onClick={() => {
-                      if (window.confirm("삭제하시겠습니까?")) {
-                        db.collection("post")
-                          .doc(docId)
-                          .delete();
-                        db.collection("user-info")
-                          .doc(uid)
-                          .collection("posts")
+                    {result.mbti}
+                  </p>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  <Link to="" className="nickname">
+                    {result.nickname}
+                  </Link>
+
+                  <OverlayTrigger
+                    placement="right"
+                    overlay={
+                      <Tooltip id="button-tooltip-2">
+                        {moment(result.timeStamp.seconds * 1000).format("llll")}
+                      </Tooltip>
+                    }
+                  >
+                    <span className="timestamp">
+                      {times(result.timeStamp.seconds)}
+                    </span>
+                  </OverlayTrigger>
+                </div>
+              </div>
+              {user != null && uid == result.uid && (
+                <Dropdown>
+                  <Dropdown.Toggle
+                    size="sm"
+                    variant="light"
+                    style={{ lineHeight: "20px" }}
+                    className="more shadow-none rounded-pill px-1 py-1"
+                  >
+                    <FiMoreHorizontal size="23"></FiMoreHorizontal>
+                  </Dropdown.Toggle>
+
+                  <Dropdown.Menu
+                    align="end"
+                    variant="dark"
+                    style={{ minWidth: "160px" }}
+                  >
+                    <Dropdown.Item
+                      onClick={() => {
+                        history.push(`/edit?docId=${docId}`);
+                      }}
+                    >
+                      수정하기
+                    </Dropdown.Item>
+                    <Dropdown.Item
+                      onClick={() => {
+                        if (window.confirm("삭제하시겠습니까?")) {
+                          postDoc.delete();
+                          uidDoc
+                            .collection("posts")
+                            .doc(docId)
+                            .delete()
+                            .then(() => {
+                              history.push("/");
+                            });
+                        }
+                      }}
+                    >
+                      삭제하기
+                    </Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+              )}
+            </div>
+          </Card.Header>
+          <Card.Body className="py-1">
+            <h5>{result.title}</h5>
+            <Card.Text style={{ margin: "0 3px" }}>
+              {parse(result.content)}
+            </Card.Text>
+          </Card.Body>
+          <Card.Footer
+            className="text-muted d-flex justify-content-evenly px-2 py-0"
+            style={{ background: "inherit", height: "38px" }}
+          >
+            <div
+              className="footer"
+              onClick={() => {
+                if (user) {
+                  if (noInfo) {
+                    if (window.confirm("닉네임 설정 후 이용이 가능합니다.")) {
+                      history.push("/user?uid=" + user.uid);
+                    }
+                  } else {
+                    result.likedUser && result.likedUser.includes(uid)
+                      ? postDoc.update({
+                          likes: result.likes - 1,
+                          totalScore: totalScore - 0.4,
+                          likedUser: arrayRemove(uid),
+                        }) &&
+                        uidDoc
+                          .collection("likes")
                           .doc(docId)
                           .delete()
-                          .then(() => {
-                            history.push("/");
-                          });
-                      }
-                    }}
-                  >
-                    삭제하기
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-            )}
-          </div>
-        </Card.Header>
-        <Card.Body className="py-1">
-          <h5>{title}</h5>
-          <Card.Text style={{ margin: "0 3px" }}>{parse(content)}</Card.Text>
-        </Card.Body>
-        <Card.Footer
-          className="text-muted d-flex justify-content-evenly px-2 py-0"
-          style={{ background: "inherit", height: "38px" }}
-        >
-          <div
-            className="footer"
-            onClick={() => {
-              {
-                user != null
-                  ? noInfo == false
-                    ? like == false
-                      ? db
-                          .collection("post")
-                          .doc(docId)
-                          .update({
-                            likes: cnt + 1,
-                            totalScore: totalScore + 0.4,
-                            likedUser: arrayUnion(uid),
-                          }) &&
-                        db
-                          .collection("user-info")
-                          .doc(uid)
+                      : postDoc.update({
+                          likes: result.likes + 1,
+                          totalScore: totalScore + 0.4,
+                          likedUser: arrayUnion(uid),
+                        }) &&
+                        uidDoc
                           .collection("likes")
                           .doc(docId)
                           .set({
                             docId: docId,
-                            title: title,
+                            title: result.title,
                             timeStamp: Timestamp.now(),
-                          })
-                      : db
-                          .collection("post")
-                          .doc(docId)
-                          .update({
-                            likes: cnt - 1,
-                            totalScore: totalScore - 0.4,
-                            likedUser: arrayRemove(uid),
-                          }) &&
-                        db
-                          .collection("user-info")
-                          .doc(uid)
-                          .collection("likes")
-                          .doc(docId)
-                          .delete() &&
-                        setLike(false)
-                    : history.push("/user?uid=" + user.uid)
-                  : setModalShow(true);
-                //  signInWithPopup(auth, provider)
-                //     .then()
-                //     .catch(() => {
-                //       console.log("로그인필요");
-                //     });
-              }
-            }}
-          >
-            <div
-              style={{
-                width: "100%",
-                margin: "auto",
-                display: "flex",
-                justifyContent: "space-evenly",
+                          });
+                  }
+                } else {
+                  setModalShow(true);
+                }
               }}
             >
-              <FiHeart
-                size="18"
-                color={like == true ? "#FF6C85" : "#777777"}
-                fill={like == true ? "#FF6C85" : "none"}
-              ></FiHeart>
-              <span
+              <div
                 style={{
-                  maxWidth: "48px",
-                  lineHeight: "16px",
-                  color: like == true ? "#FF6C85" : "#777777",
-                  textAlign: "center",
+                  width: "100%",
+                  margin: "auto",
+                  display: "flex",
+                  justifyContent: "space-evenly",
                 }}
               >
-                {cnt}
-              </span>
+                <FiHeart
+                  size="18"
+                  color={checkLike(result.likedUser, "#777777")}
+                  fill={checkLike(result.likedUser, "none")}
+                ></FiHeart>
+                <span
+                  style={{
+                    maxWidth: "48px",
+                    lineHeight: "16px",
+                    color: checkLike(result.likedUser, "#777777"),
+                    textAlign: "center",
+                  }}
+                >
+                  {result.likes}
+                </span>
+              </div>
             </div>
-          </div>
 
-          <div
-            className="footer"
-            style={{ background: "none", cursor: "default" }}
-          >
             <div
-              style={{
-                width: "100%",
-                margin: "auto",
-                display: "flex",
-                justifyContent: "space-evenly",
-              }}
+              className="footer"
+              style={{ background: "none", cursor: "default" }}
             >
-              <FaRegComment size="18" color="#777777"></FaRegComment>
-              <span
+              <div
                 style={{
-                  maxWidth: "48px",
-                  lineHeight: "16px",
-                  color: "#777777",
-                  textAlign: "center",
+                  width: "100%",
+                  margin: "auto",
+                  display: "flex",
+                  justifyContent: "space-evenly",
                 }}
               >
-                {/* {comment.length} */}
-                {comments}
-              </span>
+                <FaRegComment size="18" color="#777777"></FaRegComment>
+                <span
+                  style={{
+                    maxWidth: "48px",
+                    lineHeight: "16px",
+                    color: "#777777",
+                    textAlign: "center",
+                  }}
+                >
+                  {comments}
+                </span>
+              </div>
             </div>
-          </div>
 
-          <div
-            className="footer"
-            style={{ width: "66px" }}
-            onClick={() => {
-              if (navigator.share) {
-                navigator
-                  .share({
-                    title: `${title}`,
-                    url: `https://mbtmi-96d3c.firebaseapp.com/comments?docId=${urlSearch.get(
-                      "docId"
-                    )}`,
-                  })
-                  .then(() => {
-                    console.log("성공");
-                  })
-                  .catch((e) => {
-                    console.log("실패");
-                  });
-              } else {
-                alert("공유하기가 지원되지 않는 환경입니다.");
-              }
-            }}
-          >
             <div
-              style={{
-                width: "100%",
-                margin: "auto",
-                display: "flex",
-                justifyContent: "space-evenly",
+              className="footer"
+              style={{ width: "66px" }}
+              onClick={() => {
+                if (navigator.share) {
+                  navigator
+                    .share({
+                      title: `${result.title}`,
+                      url: `https://mbtmi-96d3c.firebaseapp.com/comments?docId=${urlSearch.get(
+                        "docId"
+                      )}`,
+                    })
+                    .then(() => {
+                      console.log("성공");
+                    })
+                    .catch((e) => {
+                      console.log("실패");
+                    });
+                } else {
+                  alert("공유하기가 지원되지 않는 환경입니다.");
+                }
               }}
             >
-              <FiShare2 size="18" color="#777777"></FiShare2>
+              <div
+                style={{
+                  width: "100%",
+                  margin: "auto",
+                  display: "flex",
+                  justifyContent: "space-evenly",
+                }}
+              >
+                <FiShare2 size="18" color="#777777"></FiShare2>
+              </div>
             </div>
-          </div>
-        </Card.Footer>
-        {/* <Card.Footer></Card.Footer> */}
-      </Card>
+          </Card.Footer>
+        </Card>
+      )}
 
       <Card
         style={{
@@ -466,24 +387,7 @@ export default function Comments() {
             onInit={(evt, editor) => (editorRef.current = editor)}
             outputFormat="text"
             onEditorChange={(newText) => setText(newText)}
-            init={{
-              // max_height: 180,
-              height: 60,
-              width: "100%",
-              language: "ko_KR",
-              placeholder: "댓글을 입력하세요.",
-              menubar: false,
-              branding: false,
-              statusbar: false,
-              contextmenu: false,
-              default_link_target: "_blank",
-              plugins: ["link", "emoticons", "autoresize", "autolink"],
-              toolbar: "| emoticons link |",
-              extended_valid_elements: "a[href|target=_blank]",
-              autoresize_on_init: false,
-              content_style:
-                "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
-            }}
+            init={EditorInit(true, "댓글을 입력하세요.")}
           ></Editor>
           {text.length > 1000 && (
             <p style={{ fontSize: "14px", margin: "0 16px 0 0", color: "red" }}>
@@ -507,7 +411,6 @@ export default function Comments() {
                 marginLeft: "10px",
               }}
             >
-              {/* 댓글 {comment.length} */}
               댓글 {comments}
             </span>
             {user ? (
@@ -519,28 +422,25 @@ export default function Comments() {
                 variant="outline-dark"
                 size="sm"
                 onClick={() => {
-                  const newDoc = db
-                    .collection("post")
-                    .doc(docId)
-                    .collection("comment")
-                    .doc();
-                  {
-                    noInfo == true
-                      ? history.push("/user?uid=" + user.uid)
-                      : newDoc.set({
-                          uid: uid,
-                          docId: docId,
-                          commentId: newDoc.id,
-                          nickname: commentNickname,
-                          mbti: commentUserMbti,
-                          comment: text,
-                          likedUser: [],
-                          likes: 0,
-                          reply: 0,
-                          timeStamp: Timestamp.now(),
-                        });
-                    db.collection("user-info")
-                      .doc(uid)
+                  const newDoc = postDoc.collection("comment").doc();
+                  if (noInfo) {
+                    if (window.confirm("닉네임 설정 후 이용이 가능합니다.")) {
+                      history.push("/user?uid=" + user.uid);
+                    }
+                  } else {
+                    newDoc.set({
+                      uid: uid,
+                      docId: docId,
+                      commentId: newDoc.id,
+                      nickname: commentNickname,
+                      mbti: commentUserMbti,
+                      comment: text,
+                      likedUser: [],
+                      likes: 0,
+                      reply: 0,
+                      timeStamp: Timestamp.now(),
+                    });
+                    uidDoc
                       .collection("comments")
                       .doc(newDoc.id)
                       .set({
@@ -552,12 +452,10 @@ export default function Comments() {
                       .then(() => {
                         setText("");
                       });
-                    db.collection("post")
-                      .doc(docId)
-                      .update({
-                        comments: comments + 1,
-                        totalScore: totalScore + 0.6,
-                      });
+                    postDoc.update({
+                      comments: comments + 1,
+                      totalScore: totalScore + 0.6,
+                    });
                   }
                 }}
               >
@@ -594,8 +492,22 @@ export default function Comments() {
           }}
         >
           {comment.map((a, i) => (
-            <>
-              <Container key={a.data.commentId} className="mt-1 comment">
+            <div key={a.data.commentId}>
+              <CommentCard
+                data={a.data}
+                uid={uid}
+                docId={docId}
+                index={i}
+                user={user}
+                comments={comments}
+                totalScore={totalScore}
+                noInfo={noInfo}
+                postDoc={postDoc}
+                uidDoc={uidDoc}
+                editorKey={tinymcekey}
+                commentNickname={commentNickname}
+              />
+              {/* <Container className="mt-1 comment">
                 <div style={{ display: "flex" }}>
                   <div
                     style={{
@@ -610,59 +522,24 @@ export default function Comments() {
                       style={{ margin: "0 7px" }}
                     ></FaUserCircle>
 
-                    {a.data.mbti &&
-                      Object.entries(palette).map(
-                        ([key, value]) =>
-                          a.data.mbti == key && (
-                            <p
-                              key={a.data.commentId}
-                              className="badge"
-                              style={{
-                                background: `${value}`,
-                                width: "40px",
-                                fontSize: "11px",
-                                marginLeft: "3px",
-                              }}
-                            >
-                              {a.data.mbti}
-                            </p>
-                          )
-                      )}
+                    {a.data.mbti && (
+                      <p
+                        className="badge small"
+                        style={{ background: BadgeColor(a.data.mbti) }}
+                      >
+                        {a.data.mbti}
+                      </p>
+                    )}
                   </div>
                   {i == edit ? (
-                    <Container
-                      key={a.data.commentId}
-                      className="d-flex flex-column align-items-end my-1 px-1"
-                    >
+                    <Container className="d-flex flex-column align-items-end my-1 px-1">
                       <Editor
                         apiKey={tinymcekey}
                         value={editText}
                         onInit={(evt, editor) => (editorRef.current = editor)}
                         outputFormat="text"
                         onEditorChange={(newText) => setEditText(newText)}
-                        init={{
-                          // max_height: 180,
-                          height: 10,
-                          width: "100%",
-                          language: "ko_KR",
-                          placeholder: "댓글을 입력하세요.",
-                          menubar: false,
-                          branding: false,
-                          statusbar: false,
-                          contextmenu: false,
-                          default_link_target: "_blank",
-                          plugins: [
-                            "link",
-                            "emoticons",
-                            "autoresize",
-                            "autolink",
-                          ],
-                          toolbar: "| emoticons link |",
-                          extended_valid_elements: "a[href|target=_blank]",
-                          autoresize_on_init: false,
-                          content_style:
-                            "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
-                        }}
+                        init={editorInit(true, "댓글을 입력하세요.")}
                       ></Editor>
                       {editText.length > 1000 && (
                         <p
@@ -687,16 +564,14 @@ export default function Comments() {
                           variant="primary"
                           size="sm"
                           onClick={() => {
-                            db.collection("post")
-                              .doc(docId)
+                            postDoc
                               .collection("comment")
                               .doc(a.data.commentId)
                               .update({
                                 comment: editText,
                               });
 
-                            db.collection("user-info")
-                              .doc(uid)
+                            uidDoc
                               .collection("comments")
                               .doc(a.data.commentId)
                               .update({
@@ -771,42 +646,7 @@ export default function Comments() {
                                       lineHeight: "36px",
                                     }}
                                   >
-                                    {currentTime - a.data.timeStamp.seconds >
-                                    year
-                                      ? Math.floor(
-                                          (currentTime -
-                                            a.data.timeStamp.seconds) /
-                                            year
-                                        ) + "년 전"
-                                      : currentTime - a.data.timeStamp.seconds >
-                                        month
-                                      ? Math.floor(
-                                          (currentTime -
-                                            a.data.timeStamp.seconds) /
-                                            month
-                                        ) + "개월 전"
-                                      : currentTime - a.data.timeStamp.seconds >
-                                        day
-                                      ? Math.floor(
-                                          (currentTime -
-                                            a.data.timeStamp.seconds) /
-                                            day
-                                        ) + "일 전"
-                                      : currentTime - a.data.timeStamp.seconds >
-                                        hour
-                                      ? Math.floor(
-                                          (currentTime -
-                                            a.data.timeStamp.seconds) /
-                                            hour
-                                        ) + "시간 전"
-                                      : currentTime - a.data.timeStamp.seconds >
-                                        min
-                                      ? Math.floor(
-                                          (currentTime -
-                                            a.data.timeStamp.seconds) /
-                                            min
-                                        ) + "분 전"
-                                      : "방금 전"}
+                                    {times(a.data.timeStamp.seconds)}
                                   </span>
                                 </OverlayTrigger>
                               </div>
@@ -844,9 +684,7 @@ export default function Comments() {
                                   </Dropdown.Item>
                                   <Dropdown.Item
                                     onClick={() => {
-                                      const doc = db
-                                        .collection("post")
-                                        .doc(docId)
+                                      const doc = postDoc
                                         .collection("comment")
                                         .doc(a.data.commentId);
                                       if (
@@ -864,17 +702,14 @@ export default function Comments() {
                                             uid: null,
                                           });
                                         }
-                                        db.collection("user-info")
-                                          .doc(uid)
+                                        uidDoc
                                           .collection("comments")
                                           .doc(a.data.commentId)
                                           .delete();
-                                        db.collection("post")
-                                          .doc(docId)
-                                          .update({
-                                            comments: comments - 1,
-                                            totalScore: totalScore - 0.6,
-                                          });
+                                        postDoc.update({
+                                          comments: comments - 1,
+                                          totalScore: totalScore - 0.6,
+                                        });
                                       }
                                     }}
                                   >
@@ -924,18 +759,14 @@ export default function Comments() {
                                 ? noInfo == false
                                   ? a.data.likedUser != null &&
                                     a.data.likedUser.includes(uid) == false
-                                    ? db
-                                        .collection("post")
-                                        .doc(docId)
+                                    ? postDoc
                                         .collection("comment")
                                         .doc(a.data.commentId)
                                         .update({
                                           likes: a.data.likes + 1,
                                           likedUser: arrayUnion(uid),
                                         })
-                                    : db
-                                        .collection("post")
-                                        .doc(docId)
+                                    : postDoc
                                         .collection("comment")
                                         .doc(a.data.commentId)
                                         .update({
@@ -986,8 +817,7 @@ export default function Comments() {
                                     : setReply(i)
                                   : setReply(i);
                               }
-                              db.collection("post")
-                                .doc(docId)
+                              postDoc
                                 .collection("comment")
                                 .doc(a.data.commentId)
                                 .collection("reply")
@@ -1013,9 +843,9 @@ export default function Comments() {
                     </Container>
                   )}
                 </div>
-              </Container>
+              </Container> */}
 
-              {i == reply && (
+              {/* {i == reply && (
                 <>
                   {replies.map((r, i) => (
                     <Container key={r.data.replyId} className="reply mt-1">
@@ -1033,30 +863,18 @@ export default function Comments() {
                             style={{ margin: "0 7px" }}
                           ></FaUserCircle>
 
-                          {Object.entries(palette).map(
-                            ([key, value]) =>
-                              r.data.mbti == key && (
-                                <p
-                                  key={r.data.replyId}
-                                  className="badge"
-                                  style={{
-                                    background: `${value}`,
-                                    width: "40px",
-                                    fontSize: "11px",
-                                    marginLeft: "3px",
-                                  }}
-                                >
-                                  {r.data.mbti}
-                                </p>
-                              )
+                          {r.data.mbti && (
+                            <p
+                              className="badge small"
+                              style={{ background: BadgeColor(r.data.mbti) }}
+                            >
+                              {r.data.mbti}
+                            </p>
                           )}
                         </div>
 
                         {i == reEdit ? (
-                          <Container
-                            key={r.data.replyId}
-                            className="d-flex flex-column align-items-end my-1 px-1"
-                          >
+                          <Container className="d-flex flex-column align-items-end my-1 px-1">
                             <Editor
                               apiKey={tinymcekey}
                               value={reEditText}
@@ -1067,30 +885,7 @@ export default function Comments() {
                               onEditorChange={(newText) =>
                                 setReEditText(newText)
                               }
-                              init={{
-                                // max_height: 180,
-                                height: 10,
-                                width: "100%",
-                                language: "ko_KR",
-                                placeholder: "댓글을 입력하세요.",
-                                menubar: false,
-                                branding: false,
-                                statusbar: false,
-                                contextmenu: false,
-                                default_link_target: "_blank",
-                                plugins: [
-                                  "link",
-                                  "emoticons",
-                                  "autoresize",
-                                  "autolink",
-                                ],
-                                toolbar: "| emoticons link |",
-                                extended_valid_elements:
-                                  "a[href|target=_blank]",
-                                autoresize_on_init: false,
-                                content_style:
-                                  "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
-                              }}
+                              init={editorInit(false, "답글을 입력하세요.")}
                             ></Editor>
                             {reEditText.length > 1000 && (
                               <p
@@ -1116,8 +911,7 @@ export default function Comments() {
                                 variant="primary"
                                 size="sm"
                                 onClick={() => {
-                                  db.collection("post")
-                                    .doc(docId)
+                                  postDoc
                                     .collection("comment")
                                     .doc(a.data.commentId)
                                     .collection("reply")
@@ -1125,8 +919,7 @@ export default function Comments() {
                                     .update({
                                       reply: reEditText,
                                     });
-                                  db.collection("user-info")
-                                    .doc(uid)
+                                  uidDoc
                                     .collection("replies")
                                     .doc(r.data.replyId)
                                     .update({
@@ -1205,47 +998,7 @@ export default function Comments() {
                                           lineHeight: "36px",
                                         }}
                                       >
-                                        {currentTime -
-                                          r.data.timeStamp.seconds >
-                                        year
-                                          ? Math.floor(
-                                              (currentTime -
-                                                r.data.timeStamp.seconds) /
-                                                year
-                                            ) + "년 전"
-                                          : currentTime -
-                                              r.data.timeStamp.seconds >
-                                            month
-                                          ? Math.floor(
-                                              (currentTime -
-                                                r.data.timeStamp.seconds) /
-                                                month
-                                            ) + "개월 전"
-                                          : currentTime -
-                                              r.data.timeStamp.seconds >
-                                            day
-                                          ? Math.floor(
-                                              (currentTime -
-                                                r.data.timeStamp.seconds) /
-                                                day
-                                            ) + "일 전"
-                                          : currentTime -
-                                              r.data.timeStamp.seconds >
-                                            hour
-                                          ? Math.floor(
-                                              (currentTime -
-                                                r.data.timeStamp.seconds) /
-                                                hour
-                                            ) + "시간 전"
-                                          : currentTime -
-                                              r.data.timeStamp.seconds >
-                                            min
-                                          ? Math.floor(
-                                              (currentTime -
-                                                r.data.timeStamp.seconds) /
-                                                min
-                                            ) + "분 전"
-                                          : "방금 전"}
+                                        {times(r.data.timeStamp.seconds)}
                                       </span>
                                     </OverlayTrigger>
                                   </div>
@@ -1283,9 +1036,7 @@ export default function Comments() {
                                       </Dropdown.Item>
                                       <Dropdown.Item
                                         onClick={() => {
-                                          const commentDoc = db
-                                            .collection("post")
-                                            .doc(docId)
+                                          const commentDoc = postDoc
                                             .collection("comment")
                                             .doc(a.data.commentId);
                                           if (
@@ -1297,8 +1048,7 @@ export default function Comments() {
                                               .collection("reply")
                                               .doc(r.data.replyId)
                                               .delete();
-                                            db.collection("user-info")
-                                              .doc(uid)
+                                            uidDoc
                                               .collection("replies")
                                               .doc(r.data.replyId)
                                               .delete();
@@ -1343,34 +1093,25 @@ export default function Comments() {
                                   borderRadius: "3px",
                                 }}
                                 onClick={() => {
+                                  const replyDoc = postDoc
+                                    .collection("comment")
+                                    .doc(a.data.commentId)
+                                    .collection("reply")
+                                    .doc(r.data.replyId);
                                   {
                                     user != null
                                       ? noInfo == false
                                         ? r.data.likedUser != null &&
                                           r.data.likedUser.includes(uid) ==
                                             false
-                                          ? db
-                                              .collection("post")
-                                              .doc(docId)
-                                              .collection("comment")
-                                              .doc(a.data.commentId)
-                                              .collection("reply")
-                                              .doc(r.data.replyId)
-                                              .update({
-                                                likes: r.data.likes + 1,
-                                                likedUser: arrayUnion(uid),
-                                              })
-                                          : db
-                                              .collection("post")
-                                              .doc(docId)
-                                              .collection("comment")
-                                              .doc(a.data.commentId)
-                                              .collection("reply")
-                                              .doc(r.data.replyId)
-                                              .update({
-                                                likes: r.data.likes - 1,
-                                                likedUser: arrayRemove(uid),
-                                              })
+                                          ? replyDoc.update({
+                                              likes: r.data.likes + 1,
+                                              likedUser: arrayUnion(uid),
+                                            })
+                                          : replyDoc.update({
+                                              likes: r.data.likes - 1,
+                                              likedUser: arrayRemove(uid),
+                                            })
                                         : history.push("/user?uid=" + user.uid)
                                       : setModalShow(true);
                                   }
@@ -1419,24 +1160,7 @@ export default function Comments() {
                         onInit={(evt, editor) => (editorRef.current = editor)}
                         outputFormat="text"
                         onEditorChange={(newText) => setReplyText(newText)}
-                        init={{
-                          // max_height: 180,
-                          height: 10,
-                          width: "100%",
-                          language: "ko_KR",
-                          placeholder: "답글을 입력하세요.",
-                          menubar: false,
-                          toolbar: false,
-                          branding: false,
-                          statusbar: false,
-                          contextmenu: false,
-                          default_link_target: "_blank",
-                          plugins: ["link", "autoresize", "autolink"],
-                          extended_valid_elements: "a[href|target=_blank]",
-                          autoresize_on_init: false,
-                          content_style:
-                            "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
-                        }}
+                        init={editorInit(false, "답글을 입력하세요.")}
                       ></Editor>
                       {replyText.length > 1000 && (
                         <p
@@ -1458,14 +1182,11 @@ export default function Comments() {
                               true
                             }
                             type="submit"
-                            // id="comment"
                             className="rounded-pill"
                             variant="primary"
                             size="sm"
                             onClick={() => {
-                              const newDoc = db
-                                .collection("post")
-                                .doc(docId)
+                              const newDoc = postDoc
                                 .collection("comment")
                                 .doc(a.data.commentId)
                                 .collection("reply")
@@ -1485,8 +1206,7 @@ export default function Comments() {
                                       likes: 0,
                                       timeStamp: Timestamp.now(),
                                     });
-                                db.collection("user-info")
-                                  .doc(uid)
+                                uidDoc
                                   .collection("replies")
                                   .doc(newDoc.id)
                                   .set({
@@ -1499,15 +1219,13 @@ export default function Comments() {
                                   .then(() => {
                                     setReplyText("");
                                   });
-                                db.collection("post")
-                                  .doc(docId)
+                                postDoc
                                   .collection("comment")
                                   .doc(a.data.commentId)
                                   .update({
                                     reply: a.data.reply + 1,
                                   });
                               }
-                              // setReply();
                             }}
                           >
                             등록
@@ -1532,104 +1250,11 @@ export default function Comments() {
                     </Container>
                   )}
                 </>
-              )}
-              {/* </>
-            )} */}
-            </>
+              )} */}
+            </div>
           ))}
         </Card>
       )}
     </>
   );
-}
-
-// {
-//   const newDoc = db
-//                     .collection("post")
-//                     .doc(docId)
-//                     .collection("comment")
-//                     .doc(a.data.commentId)
-//                     .collection("reply")
-//                     .doc()
-
-//                   {
-//                     noInfo == true
-//                       ? history.push("/user?uid=" + user.uid)
-//                       : newDoc.set({
-//                           uid: uid,
-//                           commentId: newDoc.id,
-//                           nickname: commentNickname,
-//                           mbti: commentUserMbti,
-//                           comment: text,
-//                           likedUser: [],
-//                           likes: 0,
-//                           timeStamp: Timestamp.now(),
-
-// }
-
-{
-  /* <Card.Header
-          className="pb-0"
-          style={{ background: "inherit", border: "none" }}
-        >
-          <div
-            style={{
-              fontSize: "16px",
-              // marginBottom: "6px",
-              display: "flex",
-              justifyContent: "space-between",
-            }}
-          >
-            <div style={{ display: "flex" }}>
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <FaUserCircle
-                  size="36"
-                  color="#a0aec0"
-                  style={{ margin: "0 7px" }}
-                ></FaUserCircle>
-                <p className="badge" style={{ background: `${badgeColor}` }}>
-                  {props.mbti}
-                </p>
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <Link className="nickname">{props.nickname}</Link>
-
-                <OverlayTrigger
-                  placement="right"
-                  overlay={
-                    <Tooltip id="button-tooltip-2">{koreanTime}</Tooltip>
-                  }
-                >
-                  <Link
-                    to={`/comments?docId=${props.docId}`}
-                    className="timestamp"
-                  >
-                    {time}
-                  </Link>
-                </OverlayTrigger>
-              </div>
-            </div>
-           
-        </Card.Header>
-        <Card.Body className="py-1">
-          <h5>{props.title}</h5>
-          <Card.Text
-            className={cliHeight && "masking"}
-            ref={elementRef}
-            style={{
-              maxHeight: "500px",
-              overflow: "hidden",
-              margin: "0 3px",
-            }}
-          >
-            {parse(props.content)}
-          </Card.Text>
-         
-          )}
-        </Card.Body>
-        <Card.Footer
-          className="text-muted d-flex justify-content-evenly px-2 py-0"
-          style={{ background: "inherit" }}
-        ></Card.Footer> */
 }

@@ -293,25 +293,42 @@ function MyVerticallyCenteredModal(props) {
             });
             comments.get().then((snapshot) => {
               snapshot.docs.forEach((doc) => {
-                doc.ref.update({
-                  comment: null,
-                  mbti: null,
-                  nickname: null,
-                  uid: null,
-                });
-                db.collection("post")
-                  .doc(doc.data().docId)
-                  .get()
-                  .then((result) => {
-                    if (result.exists) {
-                      db.collection("post")
-                        .doc(doc.data().docId)
-                        .update({
-                          comments: result.data().comments - 1,
-                          totalScore: result.data().totalScore - 0.6,
-                        });
-                    }
+                if (doc.data().reply == 0) {
+                  doc.ref.delete();
+                  db.collection("post")
+                    .doc(doc.data().docId)
+                    .get()
+                    .then((result) => {
+                      if (result.exists) {
+                        db.collection("post")
+                          .doc(doc.data().docId)
+                          .update({
+                            comments: result.data().comments - 1,
+                            totalScore: result.data().totalScore - 0.6,
+                          });
+                      }
+                    });
+                } else {
+                  doc.ref.update({
+                    comment: null,
+                    mbti: null,
+                    nickname: null,
+                    uid: null,
                   });
+                  db.collection("post")
+                    .doc(doc.data().docId)
+                    .get()
+                    .then((result) => {
+                      if (result.exists) {
+                        db.collection("post")
+                          .doc(doc.data().docId)
+                          .update({
+                            comments: result.data().comments - 1,
+                            totalScore: result.data().totalScore - 0.6,
+                          });
+                      }
+                    });
+                }
               });
             });
             replies.get().then((snapshot) => {
@@ -356,33 +373,3 @@ function MyVerticallyCenteredModal(props) {
     </Modal>
   );
 }
-
-// onClick={() => {
-//   if (window.confirm("계정을 삭제하시겠습니까?")) {
-//     const posts = db.collection("post").where("uid", "==", uid);
-//     const comments = db
-//       .collectionGroup("comment")
-//       .where("uid", "==", uid);
-
-//     posts.get().then((snapshot) => {
-//       snapshot.docs.forEach((doc) => {
-//         doc.ref.delete();
-//       });
-//     });
-//     comments.get().then((snapshot) => {
-//       snapshot.docs.forEach((doc) => {
-//         doc.ref.delete();
-//       });
-//     });
-
-//     db.collection("user-info")
-//       .doc(uid)
-//       .delete();
-
-//     deleteUser(user)
-//       .then(() => {
-//         history.push("/");
-//       })
-//       .catch((error) => {});
-//   }
-// }}

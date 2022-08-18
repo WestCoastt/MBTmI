@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import "./App.css";
 import { db } from "./index.js";
 import LoginModal from "./LoginModal";
+import BadgeColor from "./BadgeColor";
 import parse from "html-react-parser";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { arrayUnion, arrayRemove, Timestamp } from "firebase/firestore";
@@ -19,13 +20,10 @@ export default function CreateList(props) {
   const history = useHistory();
   const auth = getAuth();
   const [user, setUser] = useState(null);
-  const [cnt, setCnt] = useState();
   const [totalScore, setTotalScore] = useState();
   const [comments, setComments] = useState();
-  // const [comment, setComment] = useState([]);
   const [noInfo, setNoInfo] = useState();
   const [time, setTime] = useState();
-  const [badgeColor, setBadgeColor] = useState();
   const [modalShow, setModalShow] = React.useState(false);
   const koreanTime = moment(props.timestamp * 1000).format("llll");
 
@@ -33,22 +31,9 @@ export default function CreateList(props) {
     .doc(props.docId)
     .get()
     .then((doc) => {
-      setCnt(doc.data().likes);
       setComments(doc.data().comments);
       setTotalScore(doc.data().totalScore);
     });
-
-  // useEffect(() => {
-  //   db.collection("post")
-  //     .doc(props.docId)
-  //     .collection("comment")
-  //     .onSnapshot((snapshot) => {
-  //       const commentArr = snapshot.docs.map((doc) => ({
-  //         data: doc.data(),
-  //       }));
-  //       setComment(commentArr);
-  //     });
-  // }, []);
 
   onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -60,16 +45,6 @@ export default function CreateList(props) {
   });
 
   if (user != null) {
-    db.collection("post")
-      .where("likedUser", "array-contains", uid)
-      .get()
-      .then((result) => {
-        result.forEach((a) => {
-          if (a.data().docId == props.docId) {
-            // setLike(true);
-          }
-        });
-      });
     db.collection("user-info")
       .doc(uid)
       .get()
@@ -116,33 +91,6 @@ export default function CreateList(props) {
     }
   }, []);
 
-  useEffect(() => {
-    const palette = {
-      ISTJ: "#1f55de",
-      ISFJ: "#7DCE13",
-      ISTP: "#a7a7a7",
-      ISFP: "#FFB4B4",
-      INTJ: "#3AB4F2",
-      INFJ: "#b2a4ff",
-      INTP: "#009DAE",
-      INFP: "#9900F0",
-      ESTJ: "#935f2f",
-      ESFJ: "#FFD124",
-      ESTP: "#1F4690",
-      ESFP: "#F637EC",
-      ENTJ: "#F32424",
-      ENFJ: "#FF5F00",
-      ENTP: "#545f5f",
-      ENFP: "#019267",
-    };
-
-    Object.entries(palette).map(([key, value]) => {
-      if (props.mbti == key) {
-        setBadgeColor(value);
-      }
-    });
-  }, []);
-
   const checkLike = (color) => {
     if (props.likedUser && props.likedUser.includes(uid)) {
       return "#FF6C85";
@@ -184,7 +132,10 @@ export default function CreateList(props) {
                   color="#a0aec0"
                   style={{ margin: "0 7px" }}
                 ></FaUserCircle>
-                <p className="badge" style={{ background: `${badgeColor}` }}>
+                <p
+                  className="badge"
+                  style={{ background: BadgeColor(props.mbti) }}
+                >
                   {props.mbti}
                 </p>
               </div>
@@ -418,78 +369,3 @@ export default function CreateList(props) {
     </div>
   );
 }
-
-{
-  /* <div
-  className="footer"
-  style={{
-    width: "90px",
-    display: "flex",
-    cursor: "pointer",
-    height: "36px",
-    margin: "5px 0",
-    borderRadius: "3px",
-  }}
-  onClick={() => {
-    // history.push(`/comments?docId=${props.docId}`);
-  }}
->
-  <div
-    style={{
-      width: "100%",
-      margin: "auto",
-      display: "flex",
-      justifyContent: "space-evenly",
-    }}
-  >
-    <FiShare2 size="22" color="#777777"></FiShare2>
-  </div>
-</div> */
-}
-
-// onClick={() => {
-//   {
-//     user != null
-//       ? noInfo == false
-//         ? like == false
-//           ? db
-//               .collection("post")
-//               .doc(props.docId)
-//               .update({
-//                 likes: cnt + 1,
-//                 totalScore: totalScore + 0.4,
-//                 likedUser: arrayUnion(uid),
-//               }) &&
-//             db
-//               .collection("user-info")
-//               .doc(uid)
-//               .collection("likes")
-//               .doc(props.docId)
-//               .set({
-//                 docId: props.docId,
-//                 title: props.title,
-//                 timeStamp: Timestamp.now(),
-//               })
-//           : db
-//               .collection("post")
-//               .doc(props.docId)
-//               .update({
-//                 likes: cnt - 1,
-//                 totalScore: totalScore - 0.4,
-//                 likedUser: arrayRemove(uid),
-//               }) &&
-//             db
-//               .collection("user-info")
-//               .doc(uid)
-//               .collection("likes")
-//               .doc(props.docId)
-//               .delete() &&
-//             setLike(false)
-//         : history.push("/user?uid=" + user.uid)
-//       : setModalShow(true);
-//     //  signInWithPopup(auth, provider)
-//     //     .then()
-//     //     .catch(() => {
-//     //       console.log("로그인필요");
-//     //     });
-//   }

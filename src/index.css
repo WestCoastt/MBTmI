@@ -79,6 +79,12 @@ h5 {
     BlinkMacSystemFont;
 }
 
+.small {
+  width: 40px;
+  font-size: 11px;
+  margin-left: 3px;
+}
+
 .timestamp {
   margin: 0 0 0 12px;
   line-height: 36px;
