@@ -5,6 +5,7 @@ import { arrayUnion, arrayRemove } from "firebase/firestore";
 import BadgeColor from "./BadgeColor.js";
 import EditorInit from "./EditorInit.js";
 import ReplyCard from "./ReplyCard.js";
+import LoginModal from "./LoginModal";
 import times from "./times.js";
 import {
   Card,
@@ -34,7 +35,7 @@ export default function CommentCard(props) {
   const [replies, setReplies] = useState([]);
 
   const checkLike = (arr, color) => {
-    if (arr != null && arr.includes(props.uid)) {
+    if (arr && arr.includes(props.uid)) {
       return "#FF6C85";
     } else {
       return color;
@@ -43,6 +44,7 @@ export default function CommentCard(props) {
 
   return (
     <>
+      <LoginModal show={modalShow} onHide={() => setModalShow(false)} />
       <Container className="mt-1 comment">
         <div style={{ display: "flex" }}>
           <div
@@ -67,7 +69,7 @@ export default function CommentCard(props) {
               </p>
             )}
           </div>
-          {props.index == edit ? (
+          {props.index === edit ? (
             <Container className="d-flex flex-column align-items-end my-1 px-1">
               <Editor
                 apiKey={tinymcekey}
@@ -91,7 +93,7 @@ export default function CommentCard(props) {
               <div className="mt-2">
                 <Button
                   disabled={
-                    (editText.length == 0 || editText.length > 1000) && true
+                    (editText.length === 0 || editText.length > 1000) && true
                   }
                   type="submit"
                   id="comment"
@@ -186,7 +188,7 @@ export default function CommentCard(props) {
                       </div>
                     </div>
 
-                    {props.user != null && props.uid == props.data.uid && (
+                    {props.user && props.uid === props.data.uid && (
                       <Dropdown>
                         <Dropdown.Toggle
                           size="sm"
@@ -222,7 +224,7 @@ export default function CommentCard(props) {
                                 .collection("comment")
                                 .doc(props.data.commentId);
                               if (window.confirm("댓글을 삭제하시겠습니까?")) {
-                                if (props.data.reply == 0) {
+                                if (props.data.reply === 0) {
                                   doc.delete();
                                 } else {
                                   doc.update({
@@ -284,28 +286,26 @@ export default function CommentCard(props) {
                     borderRadius: "3px",
                   }}
                   onClick={() => {
-                    {
-                      props.user != null
-                        ? props.noInfo == false
-                          ? props.data.likedUser != null &&
-                            props.data.likedUser.includes(props.uid) == false
-                            ? postDoc
-                                .collection("comment")
-                                .doc(props.data.commentId)
-                                .update({
-                                  likes: props.data.likes + 1,
-                                  likedUser: arrayUnion(props.uid),
-                                })
-                            : postDoc
-                                .collection("comment")
-                                .doc(props.data.commentId)
-                                .update({
-                                  likes: props.data.likes - 1,
-                                  likedUser: arrayRemove(props.uid),
-                                })
-                          : history.push("/user?uid=" + props.user.uid)
-                        : setModalShow(true);
-                    }
+                    props.user
+                      ? props.noInfo === false
+                        ? props.data.likedUser &&
+                          props.data.likedUser.includes(props.uid) === false
+                          ? postDoc
+                              .collection("comment")
+                              .doc(props.data.commentId)
+                              .update({
+                                likes: props.data.likes + 1,
+                                likedUser: arrayUnion(props.uid),
+                              })
+                          : postDoc
+                              .collection("comment")
+                              .doc(props.data.commentId)
+                              .update({
+                                likes: props.data.likes - 1,
+                                likedUser: arrayRemove(props.uid),
+                              })
+                        : history.push("/user?uid=" + props.user.uid)
+                      : setModalShow(true);
                   }}
                 >
                   <div
@@ -340,13 +340,12 @@ export default function CommentCard(props) {
                       justifyContent: "space-evenly",
                     }}
                     onClick={() => {
-                      {
-                        reply != null
-                          ? reply == props.index
-                            ? setReply()
-                            : setReply(props.index)
-                          : setReply(props.index);
-                      }
+                      reply !== null
+                        ? reply === props.index
+                          ? setReply()
+                          : setReply(props.index)
+                        : setReply(props.index);
+
                       db.collection("post")
                         .doc(props.docId)
                         .collection("comment")
@@ -370,7 +369,7 @@ export default function CommentCard(props) {
           )}
         </div>
       </Container>
-      {props.index == reply && (
+      {props.index === reply && (
         <ReplyCard
           replies={replies}
           data={props.data}

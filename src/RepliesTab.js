@@ -29,7 +29,7 @@ export default function RepliesTab() {
     });
     repliesList.onSnapshot((snapshot) => {
       setPages(Math.ceil(snapshot.docs.length / 10));
-      if (snapshot.docs.length != 0) {
+      if (snapshot.docs.length !== 0) {
         setCurrentPage(1);
       }
     });
@@ -47,7 +47,7 @@ export default function RepliesTab() {
           setReplies(prevArr);
           setLastVisible(snapshot.docs[0]);
         });
-    } else if (currentPage == 2) {
+    } else if (currentPage === 2) {
       repliesList.limit(10).onSnapshot((snapshot) => {
         const replyArr = snapshot.docs.map((doc) => ({
           data: doc.data(),
@@ -104,7 +104,7 @@ export default function RepliesTab() {
                 .replace(/-/g, ".")}
             </span>
 
-            {uid != null && (
+            {uid && (
               <Dropdown>
                 <Dropdown.Toggle
                   size="sm"
@@ -161,9 +161,7 @@ export default function RepliesTab() {
         <Pagination>
           <Pagination.Prev
             onClick={() => {
-              {
-                currentPage > 1 && setCurrentPage(currentPage - 1);
-              }
+              currentPage > 1 && setCurrentPage(currentPage - 1);
               prevPage();
             }}
           />
@@ -172,9 +170,7 @@ export default function RepliesTab() {
           </Pagination.Item>
           <Pagination.Next
             onClick={() => {
-              {
-                currentPage < pages && setCurrentPage(currentPage + 1);
-              }
+              currentPage < pages && setCurrentPage(currentPage + 1);
               nextPage();
             }}
           />

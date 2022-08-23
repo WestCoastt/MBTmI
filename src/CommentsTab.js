@@ -29,7 +29,7 @@ export default function CommentsTab() {
     });
     commentList.onSnapshot((snapshot) => {
       setPages(Math.ceil(snapshot.docs.length / 10));
-      if (snapshot.docs.length != 0) {
+      if (snapshot.docs.length !== 0) {
         setCurrentPage(1);
       }
     });
@@ -47,7 +47,7 @@ export default function CommentsTab() {
           setComments(prevArr);
           setLastVisible(snapshot.docs[0]);
         });
-    } else if (currentPage == 2) {
+    } else if (currentPage === 2) {
       commentList.limit(10).onSnapshot((snapshot) => {
         const commentArr = snapshot.docs.map((doc) => ({
           data: doc.data(),
@@ -104,7 +104,7 @@ export default function CommentsTab() {
                 .replace(/-/g, ".")}
             </span>
 
-            {uid != null && (
+            {uid && (
               <Dropdown>
                 <Dropdown.Toggle
                   size="sm"
@@ -155,7 +155,6 @@ export default function CommentsTab() {
                 </Dropdown.Menu>
               </Dropdown>
             )}
-            {/* </div> */}
           </ListGroup.Item>
         ))}
       </ListGroup>
@@ -163,9 +162,7 @@ export default function CommentsTab() {
         <Pagination>
           <Pagination.Prev
             onClick={() => {
-              {
-                currentPage > 1 && setCurrentPage(currentPage - 1);
-              }
+              currentPage > 1 && setCurrentPage(currentPage - 1);
               prevPage();
             }}
           />
@@ -174,9 +171,7 @@ export default function CommentsTab() {
           </Pagination.Item>
           <Pagination.Next
             onClick={() => {
-              {
-                currentPage < pages && setCurrentPage(currentPage + 1);
-              }
+              currentPage < pages && setCurrentPage(currentPage + 1);
               nextPage();
             }}
           />

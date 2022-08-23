@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Container, Dropdown, Button } from "react-bootstrap";
+import { Container, Dropdown } from "react-bootstrap";
 import { FaRegComment } from "react-icons/fa";
 
 export default function Best(props) {
@@ -9,18 +9,21 @@ export default function Best(props) {
   const bestArr = ["second", "third", "fourth", "fifth", "first"];
   useEffect(() => {
     var index = 0;
-    setInterval(() => {
-      if (index == bestArr.length) index = 0;
+    const interval = setInterval(() => {
+      if (index === bestArr.length) index = 0;
       setTransition(bestArr[index++]);
     }, 5000);
+
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
 
   return (
     <Container className="px-0 mt-1 mx-0" style={{ maxWidth: "100%" }}>
       <Dropdown style={{ width: "100%" }}>
-        <Button
-          className="p-0 ps-2 mx-0 d-flex justify-content-between"
-          variant="light"
+        <Container
+          className="p-0 ps-2 mx-0 d-flex justify-content-between rounded bg-light"
           style={{
             width: "inherit",
             fontSize: "16px",
@@ -53,7 +56,7 @@ export default function Best(props) {
             className="py-2 px-3"
             size="sm"
           />
-        </Button>
+        </Container>
 
         <Dropdown.Menu
           className="py-0"

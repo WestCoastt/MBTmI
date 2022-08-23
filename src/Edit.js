@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Button, Col, Form } from "react-bootstrap";
+import { Button } from "react-bootstrap";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { db, storage } from "./index.js";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
@@ -26,7 +26,7 @@ export default function Edit() {
 
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      if (user.uid == userId) {
+      if (user.uid === userId) {
         setEditBtn(true);
       } else {
         setEditBtn(false);
@@ -84,9 +84,9 @@ export default function Edit() {
               size="sm"
               onClick={() => {
                 if (window.confirm("저장하시겠습니까?")) {
-                  title.length == 0
+                  title.length === 0
                     ? alert("제목을 입력하세요.")
-                    : text.length == 0
+                    : text.length === 0
                     ? alert("내용을 입력하세요.")
                     : titleLimit
                     ? alert("제목의 글자수는 최대 100자로 제한됩니다.")
@@ -145,10 +145,8 @@ export default function Edit() {
             default_link_target: "_blank",
             file_picker_types: "file image media",
             extended_valid_elements:
-              "iframe[src|frameborder|allowfullscreen|style|scrolling|class|width|height|name|align]",
-            extended_valid_elements: "a[href|target=_blank]",
+              "iframe[src|frameborder|allowfullscreen|style|scrolling|class|width|height|name|align], a[href|target=_blank]",
             plugins: [
-              "insertdatetime media table paste code help wordcount",
               "image",
               "link",
               "media",
@@ -157,9 +155,6 @@ export default function Edit() {
               "lists",
             ],
             toolbar:
-              // "undo redo | formatselect | " +
-              // "bold italic strikethrough underline forecolor backcolor | emoticons | numlist bullist |" +
-              // "| image media link |",
               "bold italic strikethrough underline forecolor backcolor emoticons image media link ",
             lists_indent_on_tab: false,
             file_picker_callback: function(cb, value, meta) {
@@ -179,11 +174,10 @@ export default function Edit() {
                   var array = new Uint32Array(5);
                   window.crypto.getRandomValues(array);
                   var name = "";
-                  {
-                    array.map((a, i) => {
-                      name += a.toString(36);
-                    });
-                  }
+
+                  array.map((a, i) => {
+                    name += a.toString(36);
+                  });
 
                   var upload = storage
                     .ref()

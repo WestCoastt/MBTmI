@@ -28,7 +28,7 @@ export default function PostsTab() {
     });
     postList.onSnapshot((snapshot) => {
       setPages(Math.ceil(snapshot.docs.length / 10));
-      if (snapshot.docs.length != 0) {
+      if (snapshot.docs.length !== 0) {
         setCurrentPage(1);
       }
     });
@@ -46,7 +46,7 @@ export default function PostsTab() {
           setPosts(prevArr);
           setLastVisible(snapshot.docs[0]);
         });
-    } else if (currentPage == 2) {
+    } else if (currentPage === 2) {
       postList.limit(10).onSnapshot((snapshot) => {
         const postArr = snapshot.docs.map((doc) => ({
           data: doc.data(),
@@ -77,8 +77,6 @@ export default function PostsTab() {
       <ListGroup variant="flush" style={{ marginTop: "10px", height: "500px" }}>
         {posts.map((a, i) => (
           <ListGroup.Item key={a.data.docId}>
-            {/* <div style={{ display: "flex", justifyContent: "space-between" }}> */}
-
             <Link to={`/comments?docId=${a.data.docId}`} className="tab-items">
               <span
                 className="posts"
@@ -101,7 +99,7 @@ export default function PostsTab() {
                 .replace(/-/g, ".")}
             </span>
 
-            {uid != null && (
+            {uid && (
               <Dropdown>
                 <Dropdown.Toggle
                   size="sm"
@@ -139,7 +137,6 @@ export default function PostsTab() {
                 </Dropdown.Menu>
               </Dropdown>
             )}
-            {/* </div> */}
           </ListGroup.Item>
         ))}
       </ListGroup>
@@ -147,9 +144,7 @@ export default function PostsTab() {
         <Pagination>
           <Pagination.Prev
             onClick={() => {
-              {
-                currentPage > 1 && setCurrentPage(currentPage - 1);
-              }
+              currentPage > 1 && setCurrentPage(currentPage - 1);
               prevPage();
             }}
           />
@@ -158,9 +153,7 @@ export default function PostsTab() {
           </Pagination.Item>
           <Pagination.Next
             onClick={() => {
-              {
-                currentPage < pages && setCurrentPage(currentPage + 1);
-              }
+              currentPage < pages && setCurrentPage(currentPage + 1);
               nextPage();
             }}
           />

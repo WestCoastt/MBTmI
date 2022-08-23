@@ -46,36 +46,9 @@ export default function UserInfo() {
   const [color, setColor] = useState("");
   const birthDay = `${year}-${month}-${date}`;
 
-  //제로베이스 리액트 강의 (리스트와 Key/폼과 이벤트제어하기) 8.폼 - 다중 입력 다루기
-  // const [userBirthday, setUserBirthday] = useState({
-  //   year: "",
-  //   month: "",
-  //   date: "",
-  // })
-  // const handleChange = (e) => {
-  //  setUserBirthday({...userBirthday, [e.target.name]: e.target.value})
-  // }
-  //인풋에 name설정해줘야함
-
-  // useBeforeunload((event) => {
-  //   event.preventDefault();
-  // });
-
-  // const preventGoBack = () => {
-  //   history.pushState(null, "", location.href);
-  // };
-  // useEffect(() => {
-  //   history.pushState(null, "", location.href);
-  //   window.addEventListener("popstate", preventGoBack);
-
-  //   return () => {
-  //     window.removeEventListener("popstate", preventGoBack);
-  //   };
-  // });
-
   useEffect(() => {
     let regExp = /^[a-zA-Z가-힣0-9_]{2,16}$/;
-    if (regExp.test(nickname) == true) {
+    if (regExp.test(nickname) === true) {
       db.collection("user-info")
         .where("nickname", "!=", nickname)
         .get()
@@ -92,35 +65,20 @@ export default function UserInfo() {
             setNickCheck("이미 사용중 입니다");
           });
         });
-    } else if (regExp.test(nickname) == false) {
+    } else if (regExp.test(nickname) === false) {
       setNickCheck("2~16자의 한글, 영문, 숫자, 언더바( _ )만 가능");
     }
   }, [nickname]);
 
   useEffect(() => {
-    if (nickCheck == "사용 가능한 닉네임입니다") {
+    if (nickCheck === "사용 가능한 닉네임입니다") {
       setColor("#006eff");
-    } else if (nickCheck == "이미 사용중 입니다") {
+    } else if (nickCheck === "이미 사용중 입니다") {
       setColor("red");
     } else {
       setColor("inherit");
     }
   }, [nickCheck]);
-
-  //코멘트 collection에서 where 닉네임 == 닉네임으로 업데이트
-  // db.collection("post")
-  // .collection("comment")
-  // .where("nickname", "==", nickname)
-  // .get()
-  // .then((querySnapshot) => {
-  //   querySnapshot.forEach((doc) => {
-  //     console.log(doc);
-  //   });
-  // });
-
-  // let 날짜 = year + "-" + month + "-" + date;
-
-  // console.log(birthDay);
 
   return (
     <div className="user">
@@ -253,31 +211,26 @@ export default function UserInfo() {
           className="rounded-pill float-end mt-5 me-2"
           variant="outline-dark"
           onClick={() => {
-            {
-              nickCheck !== "사용 가능한 닉네임입니다"
-                ? alert("닉네임을 확인하세요.")
-                : gender.length == 0
-                ? alert("성별을 선택하세요.")
-                : birthDay.length < 8
-                ? alert("생년월일을 입력하세요.")
-                : mbti.length == 0
-                ? alert("MBTI를 입력하세요.")
-                : db
-                    .collection("user-info")
-                    .doc(user.uid)
-                    .set({
-                      nickname: nickname,
-                      gender: gender,
-                      birthday: birthDay,
-                      MBTI: mbti,
-                    })
-                    .then(() => {
-                      // db.collection("comment")
-                      // .where("nickname", "==", nickname)
-                      history.push("/");
-                      // location.reload();
-                    });
-            }
+            nickCheck !== "사용 가능한 닉네임입니다"
+              ? alert("닉네임을 확인하세요.")
+              : gender.length === 0
+              ? alert("성별을 선택하세요.")
+              : birthDay.length < 8
+              ? alert("생년월일을 입력하세요.")
+              : mbti.length === 0
+              ? alert("MBTI를 입력하세요.")
+              : db
+                  .collection("user-info")
+                  .doc(user.uid)
+                  .set({
+                    nickname: nickname,
+                    gender: gender,
+                    birthday: birthDay,
+                    MBTI: mbti,
+                  })
+                  .then(() => {
+                    history.push("/");
+                  });
           }}
         >
           저장
@@ -285,50 +238,4 @@ export default function UserInfo() {
       </Form>
     </div>
   );
-}
-
-// {gender.map((gender, i) => (
-//   <div key={i} className="mt-2">
-//     <Form.Check
-//       key={i}
-//       inline
-//       label={gender}
-//       value={gender}
-//       name="group1"
-//       type="radio"
-//       // id={`inline-${gender}-1`}
-//       onChange={(e) => setSex(e.target.value)}
-//     />
-//   </div>
-// ))}
-
-// const date = new Date();
-// const month = ("0" + (date.getMonth() + 1)).slice(-2);
-// const day = ("0" + date.getDate()).slice(-2);
-// const fullDate = year + "-" + month + "-" + day;
-// const minDate = year - 80 + "-" + month + "-" + day;
-
-{
-  /* <Form.Group as={Row} className="mt-4" controlId="formPlaintextEmail">
-            <Form.Label column sm="3">
-              생년월일
-            </Form.Label>
-            <Col sm="5" className="ms-1">
-              <Form.Control
-                type="text"
-                placeholder="YYYY-MM-DD"
-                autoComplete="off"
-                onChange={(e) => setValue()}
-              />
-            </Col>
-            <span
-              style={{
-                fontSize: "15px",
-                textAlign: "center",
-                margin: "10px 0",
-              }}
-            >
-              {}
-            </span>
-          </Form.Group> */
 }

@@ -9,6 +9,7 @@ import "./App.css";
 import { db } from "./index.js";
 import LoginModal from "./LoginModal";
 import BadgeColor from "./BadgeColor";
+import times from "./times.js";
 import parse from "html-react-parser";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { arrayUnion, arrayRemove, Timestamp } from "firebase/firestore";
@@ -19,11 +20,11 @@ export default function CreateList(props) {
   const uid = window.localStorage.getItem("uid");
   const history = useHistory();
   const auth = getAuth();
-  const [user, setUser] = useState(null);
+  const user = auth.currentUser;
+  // const [user, setUser] = useState(null);
   const [totalScore, setTotalScore] = useState();
   const [comments, setComments] = useState();
   const [noInfo, setNoInfo] = useState();
-  const [time, setTime] = useState();
   const [modalShow, setModalShow] = React.useState(false);
   const koreanTime = moment(props.timestamp * 1000).format("llll");
 
@@ -35,59 +36,27 @@ export default function CreateList(props) {
       setTotalScore(doc.data().totalScore);
     });
 
-  onAuthStateChanged(auth, (user) => {
+  useEffect(() => {
     if (user) {
-      setUser(user);
       setModalShow(false);
-    } else {
-      setUser(null);
+      db.collection("user-info")
+        .doc(uid)
+        .get()
+        .then((docSnapshot) => {
+          if (docSnapshot.exists) {
+            setNoInfo(false);
+          } else {
+            setNoInfo(true);
+          }
+        });
     }
-  });
-
-  if (user != null) {
-    db.collection("user-info")
-      .doc(uid)
-      .get()
-      .then((docSnapshot) => {
-        if (docSnapshot.exists) {
-          setNoInfo(false);
-        } else {
-          setNoInfo(true);
-        }
-      });
-  }
+  }, []);
 
   const elementRef = useRef(null);
   const [cliHeight, setCliHeight] = useState();
   useEffect(() => {
     if (elementRef.current.clientHeight >= 500) {
       setCliHeight(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    const min = 60;
-    const hour = 60 * 60;
-    const day = 60 * 60 * 24;
-    const month = 60 * 60 * 24 * 30;
-    const year = 60 * 60 * 24 * 365;
-
-    const currentTime = new Date() / 1000;
-
-    const timeGap = currentTime - props.timestamp;
-
-    if (timeGap > year) {
-      setTime(Math.floor(timeGap / year) + "년 전");
-    } else if (timeGap > month) {
-      setTime(Math.floor(timeGap / month) + "개월 전");
-    } else if (timeGap > day) {
-      setTime(Math.floor(timeGap / day) + "일 전");
-    } else if (timeGap > hour) {
-      setTime(Math.floor(timeGap / hour) + "시간 전");
-    } else if (timeGap > min) {
-      setTime(Math.floor(timeGap / min) + "분 전");
-    } else {
-      setTime("방금 전");
     }
   }, []);
 
@@ -155,12 +124,12 @@ export default function CreateList(props) {
                     to={`/comments?docId=${props.docId}`}
                     className="timestamp"
                   >
-                    {time}
+                    {times(props.timestamp)}
                   </Link>
                 </OverlayTrigger>
               </div>
             </div>
-            {user != null && uid == props.uid && (
+            {user && uid === props.uid && (
               <Dropdown>
                 <Dropdown.Toggle
                   size="sm"
@@ -202,7 +171,7 @@ export default function CreateList(props) {
         </Card.Header>
         <Card.Body className="py-1">
           <h5 className="title">{props.title}</h5>
-          <Card.Text
+          <div
             className={cliHeight && "masking"}
             ref={elementRef}
             style={{
@@ -212,7 +181,7 @@ export default function CreateList(props) {
             }}
           >
             {parse(props.content)}
-          </Card.Text>
+          </div>
           {cliHeight && (
             <div className="read">
               <Link to={`/comments?docId=${props.docId}`} className="read-more">
@@ -235,45 +204,43 @@ export default function CreateList(props) {
               borderRadius: "3px",
             }}
             onClick={() => {
-              {
-                user != null
-                  ? noInfo == false
-                    ? props.likedUser && props.likedUser.includes(uid)
-                      ? db
-                          .collection("post")
-                          .doc(props.docId)
-                          .update({
-                            likes: props.likes - 1,
-                            totalScore: totalScore - 0.4,
-                            likedUser: arrayRemove(uid),
-                          }) &&
-                        db
-                          .collection("user-info")
-                          .doc(uid)
-                          .collection("likes")
-                          .doc(props.docId)
-                          .delete()
-                      : db
-                          .collection("post")
-                          .doc(props.docId)
-                          .update({
-                            likes: props.likes + 1,
-                            totalScore: totalScore + 0.4,
-                            likedUser: arrayUnion(uid),
-                          }) &&
-                        db
-                          .collection("user-info")
-                          .doc(uid)
-                          .collection("likes")
-                          .doc(props.docId)
-                          .set({
-                            docId: props.docId,
-                            title: props.title,
-                            timeStamp: Timestamp.now(),
-                          })
-                    : history.push("/user?uid=" + user.uid)
-                  : setModalShow(true);
-              }
+              user
+                ? noInfo === false
+                  ? props.likedUser && props.likedUser.includes(uid)
+                    ? db
+                        .collection("post")
+                        .doc(props.docId)
+                        .update({
+                          likes: props.likes - 1,
+                          totalScore: totalScore - 0.4,
+                          likedUser: arrayRemove(uid),
+                        }) &&
+                      db
+                        .collection("user-info")
+                        .doc(uid)
+                        .collection("likes")
+                        .doc(props.docId)
+                        .delete()
+                    : db
+                        .collection("post")
+                        .doc(props.docId)
+                        .update({
+                          likes: props.likes + 1,
+                          totalScore: totalScore + 0.4,
+                          likedUser: arrayUnion(uid),
+                        }) &&
+                      db
+                        .collection("user-info")
+                        .doc(uid)
+                        .collection("likes")
+                        .doc(props.docId)
+                        .set({
+                          docId: props.docId,
+                          title: props.title,
+                          timeStamp: Timestamp.now(),
+                        })
+                  : history.push("/user?uid=" + user.uid)
+                : setModalShow(true);
             }}
           >
             <div

@@ -18,12 +18,9 @@ import { getAuth, deleteUser } from "firebase/auth";
 export default function Profile() {
   const uid = window.localStorage.getItem("uid");
   const nickname = window.localStorage.getItem("nickname");
-  const auth = getAuth();
-  const user = auth.currentUser;
   const history = useHistory();
   const [birthday, setBirthday] = useState();
   const location = useLocation();
-  // const [nickname, setNickname] = useState();
 
   const [male, setMale] = useState();
   const [female, setFemale] = useState();
@@ -34,12 +31,11 @@ export default function Profile() {
 
   const [modalShow, setModalShow] = React.useState(false);
 
-  if (uid != null) {
+  if (uid) {
     db.collection("user-info")
       .doc(uid)
       .get()
       .then((result) => {
-        // setNickname(result.data().nickname);
         setMbti(result.data().MBTI);
         setBirthday(result.data().birthday);
         setGender(result.data().gender);
@@ -52,9 +48,9 @@ export default function Profile() {
   }
 
   useEffect(() => {
-    if (gender == "남") {
+    if (gender === "남") {
       setMale(true);
-    } else if (gender == "여") {
+    } else if (gender === "여") {
       setFemale(true);
     }
   }, [gender]);
@@ -74,7 +70,6 @@ export default function Profile() {
             eventKey={`/${nickname}`}
             className="px-1 mx-1"
           >
-            {/* My Profile */}
             프로필
           </Nav.Link>
         </Nav.Item>
@@ -85,7 +80,6 @@ export default function Profile() {
             eventKey={`/${nickname}/posts`}
             className="px-1 mx-1"
           >
-            {/* Posts */}
             게시글
           </Nav.Link>
         </Nav.Item>
@@ -96,7 +90,6 @@ export default function Profile() {
             eventKey={`/${nickname}/comments`}
             className="px-1 mx-1"
           >
-            {/* Comments */}
             댓글
           </Nav.Link>
         </Nav.Item>
@@ -293,7 +286,7 @@ function MyVerticallyCenteredModal(props) {
             });
             comments.get().then((snapshot) => {
               snapshot.docs.forEach((doc) => {
-                if (doc.data().reply == 0) {
+                if (doc.data().reply === 0) {
                   doc.ref.delete();
                   db.collection("post")
                     .doc(doc.data().docId)
@@ -358,10 +351,14 @@ function MyVerticallyCenteredModal(props) {
               .doc(uid)
               .delete();
 
-            deleteUser(user).then(() => {
-              history.push("/");
-            });
-            // .catch((error) => {});
+            deleteUser(user)
+              .then(() => {
+                history.push("/");
+              })
+              .catch((error) => {
+                console.log(error);
+                history.push("/");
+              });
           }}
         >
           계정 삭제

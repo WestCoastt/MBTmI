@@ -43,7 +43,11 @@ function App() {
   const [notification, setNotification] = useState(false);
 
   const [lastVisible, setLastVisible] = useState(null);
-  const oneDay = new Date().getTime() - 24 * 3600 * 1000;
+
+  const [target, setTarget] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  // const oneDay = new Date().getTime() - 24 * 3600 * 1000;
 
   useEffect(() => {
     db.collection("post")
@@ -81,9 +85,6 @@ function App() {
     }
   }, [newPost]);
 
-  const [target, setTarget] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-
   const onIntersect = async ([entry], observer) => {
     if (entry.isIntersecting) {
       setIsLoading(true);
@@ -110,7 +111,7 @@ function App() {
       threshold: 0.7,
       rootMargin: "10px 0px",
     });
-    if (target && post.length % 10 == 0 && lastVisible) {
+    if (target && post.length % 10 === 0 && lastVisible) {
       observer.observe(target);
     }
     return () => observer && observer.disconnect();
@@ -130,11 +131,9 @@ function App() {
         })
         .catch(() => {
           setNickname(null);
-          {
-            nickname == null
-              ? history.push(`/user?uid=${uid}`)
-              : history.push("/");
-          }
+          nickname === null
+            ? history.push(`/user?uid=${uid}`)
+            : history.push("/");
         });
     } else {
       setCreate(false);
@@ -155,7 +154,11 @@ function App() {
   };
 
   const LogIn = () => {
-    signInWithPopup(auth, provider).then((result) => {});
+    signInWithPopup(auth, provider)
+      .then((result) => {})
+      .catch(() => {
+        console.log("로그인 실패");
+      });
   };
 
   return (
@@ -197,7 +200,7 @@ function App() {
                 <FiSearch size="22"></FiSearch>
               </Link>
 
-              {uid != null ? (
+              {uid ? (
                 <Dropdown>
                   <Dropdown.Toggle
                     size="sm"
@@ -209,7 +212,7 @@ function App() {
                   </Dropdown.Toggle>
 
                   <Dropdown.Menu align="end" variant="light">
-                    {nickname == "" ? (
+                    {nickname === "" ? (
                       <div
                         style={{
                           height: "30px",
@@ -227,9 +230,7 @@ function App() {
                     ) : (
                       <Dropdown.Item
                         as={Link}
-                        to={
-                          nickname != null ? `${nickname}` : `/user?uid=${uid}`
-                        }
+                        to={nickname ? `${nickname}` : `/user?uid=${uid}`}
                         style={{
                           display: "flex",
                         }}
@@ -243,8 +244,8 @@ function App() {
                             flexDirection: "column",
                           }}
                         >
-                          <span>{nickname != null && nickname}</span>
-                          {nickname != null ? (
+                          <span>{nickname && nickname}</span>
+                          {nickname ? (
                             <span style={{ color: "#777777" }}>
                               프로필 보기
                             </span>
@@ -294,7 +295,7 @@ function App() {
           </Container>
         </Navbar>
 
-        {post.length == 0 ? (
+        {post.length === 0 ? (
           <div
             style={{
               marginTop: "80px",

@@ -41,7 +41,7 @@ function Search(props) {
 
       const resultArr = response.hits.map((a) => a.objectID);
 
-      if (resultArr.length == 0) {
+      if (resultArr.length === 0) {
         setNoResult(true);
       } else {
         setNoResult(false);
@@ -91,14 +91,14 @@ function Search(props) {
       threshold: 0.7,
       rootMargin: "10px 0px",
     });
-    if (target && page != pages && pages > 1 && result.length >= 1) {
+    if (target && page !== pages && pages > 1 && result.length >= 1) {
       observer.observe(target);
     }
     return () => observer && observer.disconnect();
   }, [target, result, pages]);
 
   const enterPress = (e) => {
-    if (e.key == "Enter") {
+    if (e.key === "Enter") {
       if (search.length >= 1) {
         e.preventDefault();
         setNoResult(false);

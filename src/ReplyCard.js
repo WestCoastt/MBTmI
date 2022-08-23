@@ -4,6 +4,7 @@ import { arrayUnion, arrayRemove, Timestamp } from "firebase/firestore";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import BadgeColor from "./BadgeColor.js";
 import EditorInit from "./EditorInit.js";
+import LoginModal from "./LoginModal";
 import times from "./times.js";
 import {
   Card,
@@ -35,7 +36,7 @@ export default function ReplyCard(props) {
   const [reEditText, setReEditText] = useState("");
 
   const checkLike = (arr, color) => {
-    if (arr != null && arr.includes(props.uid)) {
+    if (arr && arr.includes(props.uid)) {
       return "#FF6C85";
     } else {
       return color;
@@ -44,6 +45,7 @@ export default function ReplyCard(props) {
 
   return (
     <>
+      <LoginModal show={modalShow} onHide={() => setModalShow(false)} />
       {props.replies.map((r, i) => (
         <Container key={r.data.replyId} className="reply mt-1">
           <div style={{ display: "flex" }}>
@@ -70,7 +72,7 @@ export default function ReplyCard(props) {
               )}
             </div>
 
-            {i == reEdit ? (
+            {i === reEdit ? (
               <Container className="d-flex flex-column align-items-end my-1 px-1">
                 <Editor
                   apiKey={tinymcekey}
@@ -94,7 +96,7 @@ export default function ReplyCard(props) {
                 <div className="mt-2">
                   <Button
                     disabled={
-                      (reEditText.length == 0 || reEditText.length > 1000) &&
+                      (reEditText.length === 0 || reEditText.length > 1000) &&
                       true
                     }
                     type="submit"
@@ -192,7 +194,7 @@ export default function ReplyCard(props) {
                       </div>
                     </div>
 
-                    {props.user != null && props.uid == r.data.uid && (
+                    {props.user && props.uid === r.data.uid && (
                       <Dropdown>
                         <Dropdown.Toggle
                           size="sm"
@@ -239,7 +241,7 @@ export default function ReplyCard(props) {
                                 commentDoc.update({
                                   reply: props.data.reply - 1,
                                 });
-                                if (props.data.reply == 1) {
+                                if (props.data.reply === 1) {
                                   commentDoc.delete();
                                 }
                               }
@@ -277,27 +279,30 @@ export default function ReplyCard(props) {
                       borderRadius: "3px",
                     }}
                     onClick={() => {
-                      const replyDoc = postDoc
-                        .collection("comment")
-                        .doc(props.data.commentId)
-                        .collection("reply")
-                        .doc(r.data.replyId);
-                      {
-                        props.user != null
-                          ? props.noInfo == false
-                            ? r.data.likedUser != null &&
-                              r.data.likedUser.includes(props.uid) == false
-                              ? replyDoc.update({
+                      props.user
+                        ? props.noInfo === false
+                          ? r.data.likedUser &&
+                            r.data.likedUser.includes(props.uid) === false
+                            ? postDoc
+                                .collection("comment")
+                                .doc(props.data.commentId)
+                                .collection("reply")
+                                .doc(r.data.replyId)
+                                .update({
                                   likes: r.data.likes + 1,
                                   likedUser: arrayUnion(props.uid),
                                 })
-                              : replyDoc.update({
+                            : postDoc
+                                .collection("comment")
+                                .doc(props.data.commentId)
+                                .collection("reply")
+                                .doc(r.data.replyId)
+                                .update({
                                   likes: r.data.likes - 1,
                                   likedUser: arrayRemove(props.uid),
                                 })
-                            : history.push("/user?uid=" + props.user.uid)
-                          : setModalShow(true);
-                      }
+                          : history.push("/user?uid=" + props.user.uid)
+                        : setModalShow(true);
                     }}
                   >
                     <div
@@ -354,7 +359,7 @@ export default function ReplyCard(props) {
             <div className="mt-2">
               <Button
                 disabled={
-                  (replyText.length == 0 || replyText.length > 1000) && true
+                  (replyText.length === 0 || replyText.length > 1000) && true
                 }
                 type="submit"
                 className="rounded-pill"
@@ -366,41 +371,39 @@ export default function ReplyCard(props) {
                     .doc(props.data.commentId)
                     .collection("reply")
                     .doc();
-                  {
-                    props.noInfo == true
-                      ? history.push("/user?uid=" + props.user.uid)
-                      : newDoc.set({
-                          uid: props.uid,
-                          docId: props.docId,
-                          commentId: props.data.commentId,
-                          replyId: newDoc.id,
-                          nickname: props.commentNickname,
-                          mbti: commentUserMbti,
-                          reply: replyText,
-                          likedUser: [],
-                          likes: 0,
-                          timeStamp: Timestamp.now(),
-                        });
-                    uidDoc
-                      .collection("replies")
-                      .doc(newDoc.id)
-                      .set({
-                        reply: replyText,
-                        replyId: newDoc.id,
-                        commentId: props.data.commentId,
+                  props.noInfo === true
+                    ? history.push("/user?uid=" + props.user.uid)
+                    : newDoc.set({
+                        uid: props.uid,
                         docId: props.docId,
+                        commentId: props.data.commentId,
+                        replyId: newDoc.id,
+                        nickname: props.commentNickname,
+                        mbti: commentUserMbti,
+                        reply: replyText,
+                        likedUser: [],
+                        likes: 0,
                         timeStamp: Timestamp.now(),
-                      })
-                      .then(() => {
-                        setReplyText("");
                       });
-                    postDoc
-                      .collection("comment")
-                      .doc(props.data.commentId)
-                      .update({
-                        reply: props.data.reply + 1,
-                      });
-                  }
+                  uidDoc
+                    .collection("replies")
+                    .doc(newDoc.id)
+                    .set({
+                      reply: replyText,
+                      replyId: newDoc.id,
+                      commentId: props.data.commentId,
+                      docId: props.docId,
+                      timeStamp: Timestamp.now(),
+                    })
+                    .then(() => {
+                      setReplyText("");
+                    });
+                  postDoc
+                    .collection("comment")
+                    .doc(props.data.commentId)
+                    .update({
+                      reply: props.data.reply + 1,
+                    });
                 }}
               >
                 등록

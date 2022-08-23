@@ -20,7 +20,7 @@ export default function BadgeColor(mbti) {
 
   let color;
   Object.entries(palette).map(([key, value]) => {
-    if (mbti == key) color = value;
+    if (mbti === key) color = value;
   });
   return color;
 }

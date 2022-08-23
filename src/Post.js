@@ -26,7 +26,7 @@ export default function Post() {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  if (user != null) {
+  if (user) {
     db.collection("user-info")
       .doc(uid)
       .get()
@@ -68,52 +68,51 @@ export default function Post() {
             justifyContent: "flex-end",
           }}
         >
-          {user != null && (
+          {user && (
             <Button
               className="rounded-pill"
               variant="outline-dark"
               size="sm"
               onClick={() => {
                 const newDoc = db.collection("post").doc();
-                {
-                  noInfo == true
-                    ? history.push("/user?uid=" + user.uid)
-                    : title.length == 0
-                    ? alert("제목을 입력하세요.")
-                    : text.length == 0
-                    ? alert("내용을 입력하세요.")
-                    : titleLimit
-                    ? alert("제목의 글자수는 최대 100자로 제한됩니다.")
-                    : charLimit
-                    ? alert("본문의 글자수는 최대 20,000자로 제한됩니다.")
-                    : newDoc
-                        .set({
-                          title: title,
-                          content: text,
-                          uid: uid,
-                          nickname: nickname,
-                          mbti: mbti,
-                          docId: newDoc.id,
-                          likedUser: [],
-                          likes: 0,
-                          comments: 0,
-                          totalScore: 0,
-                          timeStamp: Timestamp.now(),
-                        })
-                        .then(() => {
-                          history.push("/");
-                        }) &&
-                      db
-                        .collection("user-info")
-                        .doc(uid)
-                        .collection("posts")
-                        .doc(newDoc.id)
-                        .set({
-                          title: title,
-                          docId: newDoc.id,
-                          timeStamp: Timestamp.now(),
-                        });
-                }
+
+                noInfo === true
+                  ? history.push("/user?uid=" + user.uid)
+                  : title.length === 0
+                  ? alert("제목을 입력하세요.")
+                  : text.length === 0
+                  ? alert("내용을 입력하세요.")
+                  : titleLimit
+                  ? alert("제목의 글자수는 최대 100자로 제한됩니다.")
+                  : charLimit
+                  ? alert("본문의 글자수는 최대 20,000자로 제한됩니다.")
+                  : newDoc
+                      .set({
+                        title: title,
+                        content: text,
+                        uid: uid,
+                        nickname: nickname,
+                        mbti: mbti,
+                        docId: newDoc.id,
+                        likedUser: [],
+                        likes: 0,
+                        comments: 0,
+                        totalScore: 0,
+                        timeStamp: Timestamp.now(),
+                      })
+                      .then(() => {
+                        history.push("/");
+                      }) &&
+                    db
+                      .collection("user-info")
+                      .doc(uid)
+                      .collection("posts")
+                      .doc(newDoc.id)
+                      .set({
+                        title: title,
+                        docId: newDoc.id,
+                        timeStamp: Timestamp.now(),
+                      });
               }}
             >
               등록
@@ -143,13 +142,10 @@ export default function Post() {
             elementpath: false,
             contextmenu: false,
             default_link_target: "_blank",
-            // autoresize_on_init: false,
             file_picker_types: "file image media",
             extended_valid_elements:
-              "iframe[src|frameborder|allowfullscreen|style|scrolling|class|width|height|name|align]",
-            extended_valid_elements: "a[href|target=_blank]",
+              "iframe[src|frameborder|allowfullscreen|style|scrolling|class|width|height|name|align], a[href|target=_blank]",
             plugins: [
-              // "insertdatetime media table paste code help wordcount",
               "image",
               "link",
               "media",
@@ -182,11 +178,10 @@ export default function Post() {
                   var array = new Uint32Array(5);
                   window.crypto.getRandomValues(array);
                   var name = "";
-                  {
-                    array.map((a, i) => {
-                      name += a.toString(36);
-                    });
-                  }
+
+                  array.map((a, i) => {
+                    name += a.toString(36);
+                  });
 
                   var upload = storage
                     .ref()
@@ -231,7 +226,6 @@ export default function Post() {
             },
             content_style:
               "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
-            // content_style: "img {max-width: 600px}",
           }}
         ></Editor>
       </div>

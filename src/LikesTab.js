@@ -27,7 +27,7 @@ export default function LikesTab() {
     });
     likeList.onSnapshot((snapshot) => {
       setPages(Math.ceil(snapshot.docs.length / 10));
-      if (snapshot.docs.length != 0) {
+      if (snapshot.docs.length !== 0) {
         setCurrentPage(1);
       }
     });
@@ -45,7 +45,7 @@ export default function LikesTab() {
           setLikes(prevArr);
           setLastVisible(snapshot.docs[0]);
         });
-    } else if (currentPage == 2) {
+    } else if (currentPage === 2) {
       likeList.limit(10).onSnapshot((snapshot) => {
         const likeArr = snapshot.docs.map((doc) => ({
           data: doc.data(),
@@ -92,9 +92,7 @@ export default function LikesTab() {
         <Pagination>
           <Pagination.Prev
             onClick={() => {
-              {
-                currentPage > 1 && setCurrentPage(currentPage - 1);
-              }
+              currentPage > 1 && setCurrentPage(currentPage - 1);
               prevPage();
             }}
           />
@@ -103,9 +101,7 @@ export default function LikesTab() {
           </Pagination.Item>
           <Pagination.Next
             onClick={() => {
-              {
-                currentPage < pages && setCurrentPage(currentPage + 1);
-              }
+              currentPage < pages && setCurrentPage(currentPage + 1);
               nextPage();
             }}
           />
