@@ -322,6 +322,7 @@ function App() {
                       className="rounded-pill"
                       style={{
                         position: "fixed",
+                        top: "70px",
                         zIndex: "10",
                         fontSize: "inherit",
                       }}
@@ -400,7 +401,7 @@ function App() {
               </Route>
               {user && (
                 <Route path="/user">
-                  <UserInfo></UserInfo>
+                  <UserInfo nickname={nickname}></UserInfo>
                 </Route>
               )}
               {nickname && (

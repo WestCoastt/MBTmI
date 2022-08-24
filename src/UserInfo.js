@@ -1,11 +1,11 @@
 /* eslint no-restricted-globals: ["off"] */
 import React, { useState, useEffect } from "react";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
-import { Col, Row, Button, Form } from "react-bootstrap";
+import { Col, Row, Button, Form, Container } from "react-bootstrap";
 import { db } from "./index.js";
 import { getAuth } from "firebase/auth";
 
-export default function UserInfo() {
+export default function UserInfo(props) {
   const history = useHistory();
   const fullYear = new Date().getFullYear();
 
@@ -207,34 +207,45 @@ export default function UserInfo() {
             </Col>
           </Form.Group>
         </Form.Group>
-        <Button
-          className="rounded-pill float-end mt-5 me-2"
-          variant="outline-dark"
-          onClick={() => {
-            nickCheck !== "사용 가능한 닉네임입니다"
-              ? alert("닉네임을 확인하세요.")
-              : gender.length === 0
-              ? alert("성별을 선택하세요.")
-              : birthDay.length < 8
-              ? alert("생년월일을 입력하세요.")
-              : mbti.length === 0
-              ? alert("MBTI를 입력하세요.")
-              : db
-                  .collection("user-info")
-                  .doc(user.uid)
-                  .set({
-                    nickname: nickname,
-                    gender: gender,
-                    birthday: birthDay,
-                    MBTI: mbti,
-                  })
-                  .then(() => {
-                    history.push("/");
-                  });
-          }}
-        >
-          저장
-        </Button>
+        <Container className="d-flex justify-content-end mt-5 mb-3">
+          <Button
+            className="rounded-pill me-2"
+            variant="primary"
+            onClick={() => {
+              nickCheck !== "사용 가능한 닉네임입니다"
+                ? alert("닉네임을 확인하세요.")
+                : gender.length === 0
+                ? alert("성별을 선택하세요.")
+                : birthDay.length < 8
+                ? alert("생년월일을 입력하세요.")
+                : mbti.length === 0
+                ? alert("MBTI를 입력하세요.")
+                : db
+                    .collection("user-info")
+                    .doc(user.uid)
+                    .set({
+                      nickname: nickname,
+                      gender: gender,
+                      birthday: birthDay,
+                      MBTI: mbti,
+                    })
+                    .then(() => {
+                      history.push("/");
+                    });
+            }}
+          >
+            저장
+          </Button>
+          <Button
+            className="rounded-pill me-2"
+            variant="outline-dark"
+            onClick={() => {
+              props.nickname ? history.goBack() : history.push("/");
+            }}
+          >
+            취소
+          </Button>
+        </Container>
       </Form>
     </div>
   );

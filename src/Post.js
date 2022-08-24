@@ -76,43 +76,47 @@ export default function Post() {
               onClick={() => {
                 const newDoc = db.collection("post").doc();
 
-                noInfo === true
-                  ? history.push("/user?uid=" + user.uid)
-                  : title.length === 0
-                  ? alert("제목을 입력하세요.")
-                  : text.length === 0
-                  ? alert("내용을 입력하세요.")
-                  : titleLimit
-                  ? alert("제목의 글자수는 최대 100자로 제한됩니다.")
-                  : charLimit
-                  ? alert("본문의 글자수는 최대 20,000자로 제한됩니다.")
-                  : newDoc
-                      .set({
-                        title: title,
-                        content: text,
-                        uid: uid,
-                        nickname: nickname,
-                        mbti: mbti,
-                        docId: newDoc.id,
-                        likedUser: [],
-                        likes: 0,
-                        comments: 0,
-                        totalScore: 0,
-                        timeStamp: Timestamp.now(),
-                      })
-                      .then(() => {
-                        history.push("/");
-                      }) &&
-                    db
-                      .collection("user-info")
-                      .doc(uid)
-                      .collection("posts")
-                      .doc(newDoc.id)
-                      .set({
-                        title: title,
-                        docId: newDoc.id,
-                        timeStamp: Timestamp.now(),
-                      });
+                if (noInfo) {
+                  if (window.confirm("닉네임 설정 후 이용이 가능합니다.")) {
+                    history.push("/user?uid=" + user.uid);
+                  }
+                } else {
+                  title.length === 0
+                    ? alert("제목을 입력하세요.")
+                    : text.length === 0
+                    ? alert("내용을 입력하세요.")
+                    : titleLimit
+                    ? alert("제목의 글자수는 최대 100자로 제한됩니다.")
+                    : charLimit
+                    ? alert("본문의 글자수는 최대 20,000자로 제한됩니다.")
+                    : newDoc
+                        .set({
+                          title: title,
+                          content: text,
+                          uid: uid,
+                          nickname: nickname,
+                          mbti: mbti,
+                          docId: newDoc.id,
+                          likedUser: [],
+                          likes: 0,
+                          comments: 0,
+                          totalScore: 0,
+                          timeStamp: Timestamp.now(),
+                        })
+                        .then(() => {
+                          history.push("/");
+                        }) &&
+                      db
+                        .collection("user-info")
+                        .doc(uid)
+                        .collection("posts")
+                        .doc(newDoc.id)
+                        .set({
+                          title: title,
+                          docId: newDoc.id,
+                          timeStamp: Timestamp.now(),
+                        });
+                }
               }}
             >
               등록

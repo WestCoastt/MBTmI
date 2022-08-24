@@ -1,5 +1,6 @@
 import React from "react";
 import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { db } from "./index.js";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 
 export default function GoogleButton(props) {
@@ -24,9 +25,18 @@ export default function GoogleButton(props) {
       onClick={() => {
         signInWithPopup(auth, provider)
           .then((result) => {
-            if (props.register) {
-              history.push(`/user?uid=${result.user.uid}`);
-            }
+            db.collection("user-info")
+              .doc(result.user.uid)
+              .get()
+              .then((docSnapshot) => {
+                if (docSnapshot.exists) {
+                  history.push("/");
+                } else {
+                  if (props.register) {
+                    history.push(`/user?uid=${result.user.uid}`);
+                  }
+                }
+              });
           })
           .catch(() => {
             console.log("로그인 실패");
