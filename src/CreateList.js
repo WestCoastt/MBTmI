@@ -50,7 +50,7 @@ export default function CreateList(props) {
           }
         });
     }
-  }, []);
+  }, [user]);
 
   const elementRef = useRef(null);
   const [cliHeight, setCliHeight] = useState();
@@ -204,9 +204,13 @@ export default function CreateList(props) {
               borderRadius: "3px",
             }}
             onClick={() => {
-              user
-                ? noInfo === false
-                  ? props.likedUser && props.likedUser.includes(uid)
+              if (user) {
+                if (noInfo) {
+                  if (window.confirm("닉네임 설정 후 이용이 가능합니다.")) {
+                    history.push("/user?uid=" + user.uid);
+                  }
+                } else {
+                  props.likedUser && props.likedUser.includes(uid)
                     ? db
                         .collection("post")
                         .doc(props.docId)
@@ -238,9 +242,9 @@ export default function CreateList(props) {
                           docId: props.docId,
                           title: props.title,
                           timeStamp: Timestamp.now(),
-                        })
-                  : history.push("/user?uid=" + user.uid)
-                : setModalShow(true);
+                        });
+                }
+              } else setModalShow(true);
             }}
           >
             <div

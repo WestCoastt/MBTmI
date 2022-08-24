@@ -141,7 +141,7 @@ export default function UserInfo() {
                 aria-label="Default select example"
                 onChange={(e) => {
                   setYear(e.target.value);
-                  console.log(e.target.value);
+                  // console.log(e.target.value);
                 }}
               >
                 <option>년</option>

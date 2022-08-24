@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useHistory, Link } from "react-router-dom";
 import { arrayUnion, arrayRemove, Timestamp } from "firebase/firestore";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
@@ -34,6 +34,12 @@ export default function ReplyCard(props) {
   const [replyText, setReplyText] = useState("");
   const [reEdit, setReEdit] = useState();
   const [reEditText, setReEditText] = useState("");
+
+  useEffect(() => {
+    if (props.user) {
+      setModalShow(false);
+    }
+  }, [props.user]);
 
   const checkLike = (arr, color) => {
     if (arr && arr.includes(props.uid)) {
@@ -279,10 +285,16 @@ export default function ReplyCard(props) {
                       borderRadius: "3px",
                     }}
                     onClick={() => {
-                      props.user
-                        ? props.noInfo === false
-                          ? r.data.likedUser &&
-                            r.data.likedUser.includes(props.uid) === false
+                      if (props.user) {
+                        if (props.noInfo) {
+                          if (
+                            window.confirm("닉네임 설정 후 이용이 가능합니다.")
+                          ) {
+                            history.push("/user?uid=" + props.uid);
+                          }
+                        } else {
+                          r.data.likedUser &&
+                          r.data.likedUser.includes(props.uid) === false
                             ? postDoc
                                 .collection("comment")
                                 .doc(props.data.commentId)
@@ -300,9 +312,9 @@ export default function ReplyCard(props) {
                                 .update({
                                   likes: r.data.likes - 1,
                                   likedUser: arrayRemove(props.uid),
-                                })
-                          : history.push("/user?uid=" + props.user.uid)
-                        : setModalShow(true);
+                                });
+                        }
+                      } else setModalShow(true);
                     }}
                   >
                     <div
@@ -366,44 +378,48 @@ export default function ReplyCard(props) {
                 variant="primary"
                 size="sm"
                 onClick={() => {
-                  const newDoc = postDoc
-                    .collection("comment")
-                    .doc(props.data.commentId)
-                    .collection("reply")
-                    .doc();
-                  props.noInfo === true
-                    ? history.push("/user?uid=" + props.user.uid)
-                    : newDoc.set({
-                        uid: props.uid,
-                        docId: props.docId,
-                        commentId: props.data.commentId,
-                        replyId: newDoc.id,
-                        nickname: props.commentNickname,
-                        mbti: commentUserMbti,
-                        reply: replyText,
-                        likedUser: [],
-                        likes: 0,
-                        timeStamp: Timestamp.now(),
-                      });
-                  uidDoc
-                    .collection("replies")
-                    .doc(newDoc.id)
-                    .set({
-                      reply: replyText,
-                      replyId: newDoc.id,
-                      commentId: props.data.commentId,
+                  if (props.noInfo) {
+                    if (window.confirm("닉네임 설정 후 이용이 가능합니다.")) {
+                      history.push("/user?uid=" + props.uid);
+                    }
+                  } else {
+                    const newDoc = postDoc
+                      .collection("comment")
+                      .doc(props.data.commentId)
+                      .collection("reply")
+                      .doc();
+                    newDoc.set({
+                      uid: props.uid,
                       docId: props.docId,
+                      commentId: props.data.commentId,
+                      replyId: newDoc.id,
+                      nickname: props.commentNickname,
+                      mbti: commentUserMbti,
+                      reply: replyText,
+                      likedUser: [],
+                      likes: 0,
                       timeStamp: Timestamp.now(),
-                    })
-                    .then(() => {
-                      setReplyText("");
                     });
-                  postDoc
-                    .collection("comment")
-                    .doc(props.data.commentId)
-                    .update({
-                      reply: props.data.reply + 1,
-                    });
+                    uidDoc
+                      .collection("replies")
+                      .doc(newDoc.id)
+                      .set({
+                        reply: replyText,
+                        replyId: newDoc.id,
+                        commentId: props.data.commentId,
+                        docId: props.docId,
+                        timeStamp: Timestamp.now(),
+                      })
+                      .then(() => {
+                        setReplyText("");
+                      });
+                    postDoc
+                      .collection("comment")
+                      .doc(props.data.commentId)
+                      .update({
+                        reply: props.data.reply + 1,
+                      });
+                  }
                 }}
               >
                 등록

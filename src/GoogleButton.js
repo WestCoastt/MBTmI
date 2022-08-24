@@ -22,11 +22,15 @@ export default function GoogleButton(props) {
         background: "white",
       }}
       onClick={() => {
-        signInWithPopup(auth, provider).then((result) => {
-          if (props.register) {
-            history.push("/");
-          }
-        });
+        signInWithPopup(auth, provider)
+          .then((result) => {
+            if (props.register) {
+              history.push(`/user?uid=${result.user.uid}`);
+            }
+          })
+          .catch(() => {
+            console.log("로그인 실패");
+          });
       }}
     >
       <div

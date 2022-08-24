@@ -13,7 +13,7 @@ import PostsTab from "./PostsTab.js";
 import CommentsTab from "./CommentsTab.js";
 import LikesTab from "./LikesTab.js";
 import RepliesTab from "./RepliesTab.js";
-import { getAuth, deleteUser } from "firebase/auth";
+import { signOut, getAuth, deleteUser } from "firebase/auth";
 
 export default function Profile() {
   const uid = window.localStorage.getItem("uid");
@@ -357,7 +357,9 @@ function MyVerticallyCenteredModal(props) {
               })
               .catch((error) => {
                 console.log(error);
-                history.push("/");
+                signOut(auth).then(() => {
+                  history.push("/");
+                });
               });
           }}
         >

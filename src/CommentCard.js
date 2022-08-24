@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useHistory, Link } from "react-router-dom";
 import { db } from "./index.js";
 import { arrayUnion, arrayRemove } from "firebase/firestore";
@@ -33,6 +33,12 @@ export default function CommentCard(props) {
   const [editText, setEditText] = useState("");
   const [reply, setReply] = useState();
   const [replies, setReplies] = useState([]);
+
+  useEffect(() => {
+    if (props.user) {
+      setModalShow(false);
+    }
+  }, [props.user]);
 
   const checkLike = (arr, color) => {
     if (arr && arr.includes(props.uid)) {
@@ -286,10 +292,16 @@ export default function CommentCard(props) {
                     borderRadius: "3px",
                   }}
                   onClick={() => {
-                    props.user
-                      ? props.noInfo === false
-                        ? props.data.likedUser &&
-                          props.data.likedUser.includes(props.uid) === false
+                    if (props.user) {
+                      if (props.noInfo) {
+                        if (
+                          window.confirm("닉네임 설정 후 이용이 가능합니다.")
+                        ) {
+                          history.push("/user?uid=" + props.uid);
+                        }
+                      } else {
+                        props.data.likedUser &&
+                        props.data.likedUser.includes(props.uid) === false
                           ? postDoc
                               .collection("comment")
                               .doc(props.data.commentId)
@@ -303,9 +315,9 @@ export default function CommentCard(props) {
                               .update({
                                 likes: props.data.likes - 1,
                                 likedUser: arrayRemove(props.uid),
-                              })
-                        : history.push("/user?uid=" + props.user.uid)
-                      : setModalShow(true);
+                              });
+                      }
+                    } else setModalShow(true);
                   }}
                 >
                   <div

@@ -125,15 +125,17 @@ function App() {
         .doc(user.uid)
         .get()
         .then((result) => {
-          setNickname(result.data().nickname);
-          window.localStorage.setItem("nickname", result.data().nickname);
-          window.localStorage.setItem("MBTI", result.data().MBTI);
+          if (result.exists) {
+            setNickname(result.data().nickname);
+            window.localStorage.setItem("nickname", result.data().nickname);
+            window.localStorage.setItem("MBTI", result.data().MBTI);
+          } else {
+            setNickname(null);
+          }
         })
         .catch(() => {
           setNickname(null);
-          nickname === null
-            ? history.push(`/user?uid=${uid}`)
-            : history.push("/");
+          // history.push("/");
         });
     } else {
       setCreate(false);
@@ -164,7 +166,7 @@ function App() {
   return (
     <>
       <Route path="/register">
-        <Register nickname={nickname}></Register>
+        <Register></Register>
       </Route>
       <div className="main">
         <Navbar
@@ -230,7 +232,7 @@ function App() {
                     ) : (
                       <Dropdown.Item
                         as={Link}
-                        to={nickname ? `${nickname}` : `/user?uid=${uid}`}
+                        to={nickname ? `/${nickname}` : `/user?uid=${uid}`}
                         style={{
                           display: "flex",
                         }}

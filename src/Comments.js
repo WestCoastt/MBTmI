@@ -27,10 +27,7 @@ import { Editor } from "@tinymce/tinymce-react";
 import { FiHeart, FiMoreHorizontal, FiShare2 } from "react-icons/fi";
 import { FaRegComment, FaUserCircle } from "react-icons/fa";
 import { useHistory, Link } from "react-router-dom";
-import {
-  Redirect,
-  useLocation,
-} from "react-router-dom/cjs/react-router-dom.min.js";
+import { Redirect } from "react-router-dom/cjs/react-router-dom.min.js";
 
 export default function Comments() {
   const uid = window.localStorage.getItem("uid");
@@ -54,7 +51,6 @@ export default function Comments() {
   const [result, setResult] = useState();
   const [postDoc, setPostDoc] = useState();
   const [uidDoc, setUidDoc] = useState();
-  const location = useLocation();
 
   if (docId === "" || window.location.search.includes("?docId=") === false) {
     return <Redirect to={"/404-not-found"} />;
@@ -102,22 +98,24 @@ export default function Comments() {
       });
   }, []);
 
-  if (user) {
-    db.collection("user-info")
-      .doc(uid)
-      .get()
-      .then((docSnapshot) => {
-        if (docSnapshot.exists) {
-          setNoInfo(false);
-        } else {
-          setNoInfo(true);
-        }
-      });
-  }
+  useEffect(() => {
+    if (user) {
+      setModalShow(false);
+      db.collection("user-info")
+        .doc(uid)
+        .get()
+        .then((docSnapshot) => {
+          if (docSnapshot.exists) {
+            setNoInfo(false);
+          } else {
+            setNoInfo(true);
+          }
+        });
+    }
+  }, [user]);
 
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      setModalShow(false);
       if (noInfo === false) {
         db.collection("user-info")
           .doc(uid)
@@ -139,6 +137,7 @@ export default function Comments() {
 
   return (
     <>
+      <LoginModal show={modalShow} onHide={() => setModalShow(false)} />
       {result && (
         <Card
           style={{
@@ -148,7 +147,6 @@ export default function Comments() {
             margin: "15px 0px",
           }}
         >
-          <LoginModal show={modalShow} onHide={() => setModalShow(false)} />
           <Card.Header
             className="pb-0"
             style={{ background: "inherit", border: "none" }}
