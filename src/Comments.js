@@ -91,11 +91,22 @@ export default function Comments() {
       .onSnapshot((result) => {
         if (result.exists) {
           setResult(result.data());
+        }
+      });
+    db.collection("post")
+      .doc(docId)
+      .get()
+      .then((result) => {
+        if (result.exists) {
         } else {
           window.alert("삭제되었거나 존재하지 않는 게시물입니다.");
           history.goBack();
         }
       });
+
+    return () => {
+      setResult();
+    };
   }, []);
 
   useEffect(() => {
@@ -219,14 +230,13 @@ export default function Comments() {
                     <Dropdown.Item
                       onClick={() => {
                         if (window.confirm("삭제하시겠습니까?")) {
-                          postDoc.delete();
                           uidDoc
                             .collection("posts")
                             .doc(docId)
-                            .delete()
-                            .then(() => {
-                              history.push("/");
-                            });
+                            .delete();
+                          postDoc.delete().then(() => {
+                            history.push("/");
+                          });
                         }
                       }}
                     >

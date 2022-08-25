@@ -11,7 +11,7 @@ import LoginModal from "./LoginModal";
 import BadgeColor from "./BadgeColor";
 import times from "./times.js";
 import parse from "html-react-parser";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getAuth } from "firebase/auth";
 import { arrayUnion, arrayRemove, Timestamp } from "firebase/firestore";
 import { FiHeart, FiMoreHorizontal, FiShare2 } from "react-icons/fi";
 import { FaRegComment, FaUserCircle } from "react-icons/fa";
@@ -21,7 +21,6 @@ export default function CreateList(props) {
   const history = useHistory();
   const auth = getAuth();
   const user = auth.currentUser;
-  // const [user, setUser] = useState(null);
   const [totalScore, setTotalScore] = useState();
   const [comments, setComments] = useState();
   const [noInfo, setNoInfo] = useState();

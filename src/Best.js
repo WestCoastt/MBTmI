@@ -31,7 +31,7 @@ export default function Best(props) {
           }}
         >
           <span className="best-badge">인기</span>
-          <div style={{ overflow: "hidden" }}>
+          <div style={{ width: "100%", overflow: "hidden" }}>
             <Container className={"head-container px-0 " + transition}>
               {props.best.map((a, i) => (
                 <div
