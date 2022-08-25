@@ -28,6 +28,7 @@ export default function Best(props) {
             width: "inherit",
             fontSize: "16px",
             textAlign: "start",
+            maxWidth: "768px",
           }}
         >
           <span className="best-badge">인기</span>

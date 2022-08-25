@@ -170,16 +170,30 @@ function App() {
       </Route>
       <div className="main">
         <Navbar
-          style={{ minWidth: "360px" }}
+          style={{ minWidth: "360px", background: "#000" }}
           className="py-0"
           fixed="top"
-          bg="dark"
+          // bg="dark"
           expand="lg"
         >
           <Container fluid className="px-2" style={{ width: "768px" }}>
             <Navbar.Brand className="text-light mx-0">
-              <Link to="/" style={{ textDecoration: "none", color: "white" }}>
-                MBT(m)I
+              <Link
+                to="/"
+                style={{
+                  textDecoration: "none",
+                  color: "white",
+                  fontWeight: "700",
+                  letterSpacing: "4px",
+                }}
+              >
+                MBT
+                <img
+                  src="/logo.png"
+                  alt="logo"
+                  style={{ width: "28px", margin: "0 4px 6px 0" }}
+                />
+                I
               </Link>
             </Navbar.Brand>
 
