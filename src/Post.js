@@ -1,12 +1,11 @@
 import { Timestamp } from "firebase/firestore";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "react-bootstrap";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { db, storage } from "./index.js";
 import { getAuth } from "firebase/auth";
 import { Editor } from "@tinymce/tinymce-react";
 import ReactLoading from "react-loading";
-import { useEffect } from "react";
 
 export default function Post() {
   const uid = window.localStorage.getItem("uid");

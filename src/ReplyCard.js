@@ -247,7 +247,10 @@ export default function ReplyCard(props) {
                                 commentDoc.update({
                                   reply: props.data.reply - 1,
                                 });
-                                if (props.data.reply === 1) {
+                                if (
+                                  props.data.reply === 1 &&
+                                  props.data.uid === null
+                                ) {
                                   commentDoc.delete();
                                 }
                               }
@@ -431,6 +434,7 @@ export default function ReplyCard(props) {
               variant="outline-dark"
               size="sm"
               onClick={() => {
+                provider.addScope("email");
                 signInWithPopup(auth, provider)
                   .then()
                   .catch(() => {

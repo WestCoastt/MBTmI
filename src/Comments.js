@@ -478,6 +478,7 @@ export default function Comments() {
                 variant="outline-dark"
                 size="sm"
                 onClick={() => {
+                  provider.addScope("email");
                   signInWithPopup(auth, provider)
                     .then()
                     .catch(() => {

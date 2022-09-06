@@ -156,6 +156,7 @@ function App() {
   };
 
   const LogIn = () => {
+    provider.addScope("email");
     signInWithPopup(auth, provider)
       .then((result) => {})
       .catch(() => {

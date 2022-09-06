@@ -23,6 +23,7 @@ export default function GoogleButton(props) {
         background: "white",
       }}
       onClick={() => {
+        provider.addScope("email");
         signInWithPopup(auth, provider)
           .then((result) => {
             db.collection("user-info")
