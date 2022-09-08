@@ -25,6 +25,7 @@ import ReactLoading from "react-loading";
 import { FiSearch, FiMoreHorizontal } from "react-icons/fi";
 import { FaUserCircle } from "react-icons/fa";
 import { BsPencilSquare } from "react-icons/bs";
+import { HiOutlineMail } from "react-icons/hi";
 import NotFound from "./NotFound";
 
 function App() {
@@ -422,6 +423,22 @@ function App() {
               {nickname && (
                 <Route path={`/${nickname}/`}>
                   <Profile></Profile>
+                  <div className="main-footer">
+                    <Container className="contact d-flex align-items-center">
+                      <a href="mailto:help@mbtmi.net">
+                        <HiOutlineMail
+                          size="42"
+                          color="#a0a0a0"
+                        ></HiOutlineMail>
+                      </a>
+                      <a href="mailto:help@mbtmi.net" className="email">
+                        문의 : help@mbtmi.net
+                      </a>
+                    </Container>
+                    <Container style={{ width: "max-content" }}>
+                      <p>© 2022 MBTmI. All rights reserved.</p>
+                    </Container>
+                  </div>
                 </Route>
               )}
               <Route path="/comments">

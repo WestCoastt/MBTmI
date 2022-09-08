@@ -51,6 +51,32 @@ h5 {
   align-items: flex-end;
 }
 
+.main-footer {
+  position: absolute;
+  margin-top: 950px;
+  left: 0;
+  background-color: #252525;
+  width: 100%;
+  height: 250px;
+  color: #a0a0a0;
+}
+
+.contact {
+  width: max-content;
+  margin-top: 80px;
+  margin-bottom: 40px;
+}
+.email {
+  text-decoration: none;
+  color: #a0a0a0;
+  font-size: 18px;
+  font-weight: 700;
+  margin-left: 10px;
+}
+.email:hover {
+  color: #fff;
+}
+
 .nickname {
   margin: 3px 2px 3px 10px;
   line-height: 20px;
@@ -526,6 +552,10 @@ input {
   }*/
   .nickname {
     font-size: 14px;
+  }
+
+  .main-footer {
+    margin-top: 750px;
   }
 
   .card-footer {
