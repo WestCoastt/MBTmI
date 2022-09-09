@@ -206,6 +206,7 @@ export default function Edit() {
             },
             content_style:
               "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
+            content_style: "img {max-width: 100%; height: auto;}",
           }}
         />
       </div>
