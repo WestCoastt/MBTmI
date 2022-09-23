@@ -228,8 +228,8 @@ export default function Post() {
               input.click();
             },
             content_style:
-              "body { font-family:Helvetica,Arial,sans-serif; font-size:14px },",
-            content_style: "img {max-width: 100%; height: auto;}",
+              "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }" +
+              "img {max-width: 100%; height: auto;}",
           }}
         ></Editor>
       </div>
